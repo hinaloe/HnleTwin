@@ -138,6 +138,9 @@
   <data name="LabelProductName.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>6, 0, 3, 0</value>
   </data>
+  <data name="LabelProductName.MaximumSize" type="System.Drawing.Size, System.Drawing">
+    <value>0, 16</value>
+  </data>
   <data name="LabelProductName.Size" type="System.Drawing.Size, System.Drawing">
     <value>257, 16</value>
   </data>
@@ -170,6 +173,9 @@
   </data>
   <data name="LabelVersion.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>6, 0, 3, 0</value>
+  </data>
+  <data name="LabelVersion.MaximumSize" type="System.Drawing.Size, System.Drawing">
+    <value>0, 16</value>
   </data>
   <data name="LabelVersion.Size" type="System.Drawing.Size, System.Drawing">
     <value>257, 16</value>
@@ -204,6 +210,9 @@
   <data name="LabelCopyright.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>6, 0, 3, 0</value>
   </data>
+  <data name="LabelCopyright.MaximumSize" type="System.Drawing.Size, System.Drawing">
+    <value>0, 16</value>
+  </data>
   <data name="LabelCopyright.Size" type="System.Drawing.Size, System.Drawing">
     <value>257, 16</value>
   </data>
@@ -236,6 +245,9 @@
   </data>
   <data name="LabelCompanyName.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>6, 0, 3, 0</value>
+  </data>
+  <data name="LabelCompanyName.MaximumSize" type="System.Drawing.Size, System.Drawing">
+    <value>0, 16</value>
   </data>
   <data name="LabelCompanyName.Size" type="System.Drawing.Size, System.Drawing">
     <value>257, 16</value>

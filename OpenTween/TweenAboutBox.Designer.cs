@@ -66,25 +66,21 @@
             // LabelProductName
             // 
             resources.ApplyResources(this.LabelProductName, "LabelProductName");
-            this.LabelProductName.MaximumSize = new System.Drawing.Size(0, 16);
             this.LabelProductName.Name = "LabelProductName";
             // 
             // LabelVersion
             // 
             resources.ApplyResources(this.LabelVersion, "LabelVersion");
-            this.LabelVersion.MaximumSize = new System.Drawing.Size(0, 16);
             this.LabelVersion.Name = "LabelVersion";
             // 
             // LabelCopyright
             // 
             resources.ApplyResources(this.LabelCopyright, "LabelCopyright");
-            this.LabelCopyright.MaximumSize = new System.Drawing.Size(0, 16);
             this.LabelCopyright.Name = "LabelCopyright";
             // 
             // LabelCompanyName
             // 
             resources.ApplyResources(this.LabelCompanyName, "LabelCompanyName");
-            this.LabelCompanyName.MaximumSize = new System.Drawing.Size(0, 16);
             this.LabelCompanyName.Name = "LabelCompanyName";
             // 
             // TextBoxDescription

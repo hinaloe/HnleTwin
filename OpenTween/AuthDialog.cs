@@ -81,6 +81,14 @@ namespace OpenTween
             {
                 dialog.AuthUrl = authUrl;
 
+                try
+                {
+                    System.Diagnostics.Process.Start(authUrl);
+                }
+                catch (Win32Exception ex)
+                {
+                }
+
                 dialog.ShowDialog(owner);
 
                 if (dialog.DialogResult == DialogResult.OK)
