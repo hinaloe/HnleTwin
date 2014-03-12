@@ -54,7 +54,7 @@ namespace OpenTween
         /// <summary>
         /// 「ヘルプ」メニューの「(アプリ名) ウェブサイト」クリック時に外部ブラウザで表示する URL
         /// </summary>
-        public const string WebsiteUrl = "http://sourceforge.jp/projects/opentween/wiki/FrontPage";
+        public const string WebsiteUrl = "http://hnle.tk/HnleTwin";
 
         /// <summary>
         /// 「ヘルプ」メニューの「ショートカットキー一覧」クリック時に外部ブラウザで表示する URL
@@ -74,7 +74,7 @@ namespace OpenTween
         /// version.txt のフォーマットについては http://sourceforge.jp/projects/opentween/wiki/VersionTxt を参照。
         /// 派生プロジェクトなどでこの機能を無効にする場合は null をセットして下さい。
         /// </remarks>
-        public static readonly string VersionInfoUrl = "http://www.opentween.org/status/version.txt";
+        public static readonly string VersionInfoUrl = "";//"http://www.opentween.org/status/version.txt";
 
         //=====================================================================
         // Twitter
@@ -83,8 +83,8 @@ namespace OpenTween
         /// <summary>
         /// Twitter コンシューマーキー
         /// </summary>
-        public const string TwitterConsumerKey = "ST6eAABKDRKTqbN7pPo2A";
-        public const string TwitterConsumerSecret = "BJMEiivrXlqGESzdb8D0bvLfNYf3fifXRDMFjMogXg";
+        public const string TwitterConsumerKey = "Fq6mZS0YPKd5TQ6SjI4w";
+        public const string TwitterConsumerSecret = "KiYKrqapxeZN2SCPQ7Z29Bfnvt8ikmSVtfYfK1YlKw";
 
         //=====================================================================
         // Twitpic
@@ -93,7 +93,7 @@ namespace OpenTween
         /// <summary>
         /// Twitpic APIキー
         /// </summary>
-        public const string TwitpicApiKey = "bbc6449ceac87ef10c546e4a0ca06ef4";
+        public const string TwitpicApiKey = "e6b9cf0fb9b2a33dfb38c62945d4750d";
 
         //=====================================================================
         // yfrog
@@ -111,12 +111,12 @@ namespace OpenTween
         /// <summary>
         /// Foursquare Client Id
         /// </summary>
-        public const string FoursquareClientId = "5H3K5YQPT55DNQUFEOAJFNJA5D01ZJGO2ITEAJ3ASRIDONUB";
+        public const string FoursquareClientId = "HWQOANC0B3DRTKIPVS3RNLH3OJJELP0SMTRSOLEVPXEBXUTH";
 
         /// <summary>
         /// Foursquare Client Secret
         /// </summary>
-        public const string FoursquareClientSecret = "JFRHP1L451M3AEPF11UZLTIIUZCZTZRVHVOWB5TQ0AJOVPBB";
+        public const string FoursquareClientSecret = "LUG3BKVU402TDL2OISK3EAFFTSQLHC4MKLZBPETAHNXOMRDQ";
 
         //=====================================================================
         // bit.ly
