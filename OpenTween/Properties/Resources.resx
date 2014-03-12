@@ -242,7 +242,7 @@
     <value>検索</value>
   </data>
   <data name="FavAddToolStripMenuItem_ClickText1" xml:space="preserve">
-    <value>選択された発言をFavoritesに追加します。よろしいですか？</value>
+    <value>選択された発言をふぁぼるよ？</value>
   </data>
   <data name="FavAddToolStripMenuItem_ClickText2" xml:space="preserve">
     <value>Fav確認</value>
@@ -254,13 +254,13 @@
     <value>Fav追加なし</value>
   </data>
   <data name="FavRemoveToolStripMenuItem_ClickText1" xml:space="preserve">
-    <value>選択された発言をFavoritesから削除します。よろしいですか？</value>
+    <value>選択された発言をあんふぁぼするよ？</value>
   </data>
   <data name="FavRemoveToolStripMenuItem_ClickText2" xml:space="preserve">
-    <value>Fav確認</value>
+    <value>ふぁぼかくにん</value>
   </data>
   <data name="FavRemoveToolStripMenuItem_ClickText3" xml:space="preserve">
-    <value>Fav削除中...</value>
+    <value>あんふぁぼ中...</value>
   </data>
   <data name="FavRemoveToolStripMenuItem_ClickText4" xml:space="preserve">
     <value>Fav削除なし</value>
@@ -719,10 +719,10 @@
     <value> さんとのフォロー関係</value>
   </data>
   <data name="AuthorizeButton_Click1" xml:space="preserve">
-    <value>認証しました</value>
+    <value>認証したよっ</value>
   </data>
   <data name="AuthorizeButton_Click2" xml:space="preserve">
-    <value>認証できませんでした</value>
+    <value>認証できなかったよ＞＜</value>
   </data>
   <data name="AuthorizeButton_Click3" xml:space="preserve">
     <value>認証済</value>
@@ -851,19 +851,19 @@
     <value>ブロックを行いました。成功しているかどうかWebでご確認ください。</value>
   </data>
   <data name="ButtonReportSpam_ClickText1" xml:space="preserve">
-    <value> をブロックしスパム報告を行います。よろしいですか？</value>
+    <value> をブロックしてリポート(スパム報告)しちゃうよ。いいのかな？</value>
   </data>
   <data name="ButtonReportSpam_ClickText2" xml:space="preserve">
     <value>スパム報告確認</value>
   </data>
   <data name="ButtonReportSpam_ClickText3" xml:space="preserve">
-    <value>エラーが発生しました。成功しているかどうかWebでご確認ください。</value>
+    <value>エラーが出たよ。成功してるかもしれないから、webで確認してねっ！</value>
   </data>
   <data name="ButtonReportSpam_ClickText4" xml:space="preserve">
-    <value>ブロックしスパム報告を行いました。成功しているかどうかWebでご確認ください。</value>
+    <value>ブロックしてリポートしたよっ。成功してるかwebで確認してねっ！</value>
   </data>
   <data name="ButtonUnFollow_ClickText1" xml:space="preserve">
-    <value> をフォロー解除します。よろしいですか？</value>
+    <value>をリムっちゃってもいいかな？</value>
   </data>
   <data name="ButtonUnFollow_ClickText2" xml:space="preserve">
     <value>フォロー解除確認</value>

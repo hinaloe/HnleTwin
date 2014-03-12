@@ -281,7 +281,7 @@ namespace OpenTween.Properties {
         }
         
         /// <summary>
-        ///   認証しました に類似しているローカライズされた文字列を検索します。
+        ///   認証したよっ に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string AuthorizeButton_Click1 {
             get {
@@ -290,7 +290,7 @@ namespace OpenTween.Properties {
         }
         
         /// <summary>
-        ///   認証できませんでした に類似しているローカライズされた文字列を検索します。
+        ///   認証できなかったよ＞＜ に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string AuthorizeButton_Click2 {
             get {
@@ -488,7 +488,7 @@ namespace OpenTween.Properties {
         }
         
         /// <summary>
-        ///    をブロックしスパム報告を行います。よろしいですか？ に類似しているローカライズされた文字列を検索します。
+        ///    をブロックしてリポート(スパム報告)しちゃうよ。いいのかな？ に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string ButtonReportSpam_ClickText1 {
             get {
@@ -506,7 +506,7 @@ namespace OpenTween.Properties {
         }
         
         /// <summary>
-        ///   エラーが発生しました。成功しているかどうかWebでご確認ください。 に類似しているローカライズされた文字列を検索します。
+        ///   エラーが出たよ。成功してるかもしれないから、webで確認してねっ！ に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string ButtonReportSpam_ClickText3 {
             get {
@@ -515,7 +515,7 @@ namespace OpenTween.Properties {
         }
         
         /// <summary>
-        ///   ブロックしスパム報告を行いました。成功しているかどうかWebでご確認ください。 に類似しているローカライズされた文字列を検索します。
+        ///   ブロックしてリポートしたよっ。成功してるかwebで確認してねっ！ に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string ButtonReportSpam_ClickText4 {
             get {
@@ -542,7 +542,7 @@ namespace OpenTween.Properties {
         }
         
         /// <summary>
-        ///    をフォロー解除します。よろしいですか？ に類似しているローカライズされた文字列を検索します。
+        ///   をリムっちゃってもいいかな？ に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string ButtonUnFollow_ClickText1 {
             get {
@@ -954,7 +954,7 @@ namespace OpenTween.Properties {
         }
         
         /// <summary>
-        ///   選択された発言をFavoritesに追加します。よろしいですか？ に類似しているローカライズされた文字列を検索します。
+        ///   選択された発言をふぁぼるよ？ に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string FavAddToolStripMenuItem_ClickText1 {
             get {
@@ -1026,7 +1026,7 @@ namespace OpenTween.Properties {
         }
         
         /// <summary>
-        ///   選択された発言をFavoritesから削除します。よろしいですか？ に類似しているローカライズされた文字列を検索します。
+        ///   選択された発言をあんふぁぼするよ？ に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string FavRemoveToolStripMenuItem_ClickText1 {
             get {
@@ -1035,7 +1035,7 @@ namespace OpenTween.Properties {
         }
         
         /// <summary>
-        ///   Fav確認 に類似しているローカライズされた文字列を検索します。
+        ///   ふぁぼかくにん に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string FavRemoveToolStripMenuItem_ClickText2 {
             get {
@@ -1044,7 +1044,7 @@ namespace OpenTween.Properties {
         }
         
         /// <summary>
-        ///   Fav削除中... に類似しているローカライズされた文字列を検索します。
+        ///   あんふぁぼ中... に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string FavRemoveToolStripMenuItem_ClickText3 {
             get {
