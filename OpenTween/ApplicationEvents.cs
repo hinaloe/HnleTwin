@@ -55,7 +55,7 @@ namespace OpenTween
         {
             if (!CheckRuntimeVersion())
             {
-                var message = string.Format(Properties.Resources.CheckRuntimeVersion_Error, ".NET Framework 4.5.1");
+                var message = string.Format(Properties.Resources.CheckRuntimeVersion_Error, ".NET Framework 4.5.2");
                 MessageBox.Show(message, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return 1;
             }

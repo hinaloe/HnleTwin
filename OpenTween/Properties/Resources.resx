@@ -1147,4 +1147,54 @@
   <data name="TabNameDuplicate_Text" xml:space="preserve">
     <value>タブ "{0}" が既に存在するため追加できません。同名のタブを削除して再度やり直して下さい。</value>
   </data>
+  <data name="PostPictureWarn3" xml:space="preserve">
+    <value>[投稿先: {0}]
+"{2}" の投稿には対応していません。他の投稿先を使用してください。
+
+ファイル名: {3}
+使用可能な投稿先: {1}</value>
+  </data>
+  <data name="PostPictureWarn4" xml:space="preserve">
+    <value>投稿画像選択</value>
+  </data>
+  <data name="PostPictureWarn5" xml:space="preserve">
+    <value>[投稿先: {0}]
+ファイルが大きすぎます。ファイルサイズを小さくするか、他の投稿先を使用してください。
+
+ファイル名: {2}
+使用可能な投稿先: {1}</value>
+  </data>
+  <data name="PostPictureWarn6" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="UpdateMuteUserIds_Error" xml:space="preserve">
+    <value>MuteUserIds取得エラー: {0}</value>
+  </data>
+  <data name="UpdateMuteUserIds_Finish" xml:space="preserve">
+    <value>MuteUserIds取得完了</value>
+  </data>
+  <data name="UpdateMuteUserIds_Start" xml:space="preserve">
+    <value>MuteUserIds取得中...</value>
+  </data>
+  <data name="CheckRuntimeVersion_Error" xml:space="preserve">
+    <value>このソフトウェアは {0} 以降が必要です。</value>
+  </data>
+  <data name="ChangeIconToolStripMenuItem_Confirm" xml:space="preserve">
+    <value>アイコンを変更します。よろしいですか？</value>
+  </data>
+  <data name="PlayableOverlayImage" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PlayableOverlayImage.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="MuteTabName" xml:space="preserve">
+    <value>(ミュート)</value>
+  </data>
+  <data name="DisableButtonCaption" xml:space="preserve">
+    <value>無効化</value>
+  </data>
+  <data name="EnableButtonCaption" xml:space="preserve">
+    <value>有効化</value>
+  </data>
+  <data name="LoadingText" xml:space="preserve">
+    <value>読み込み中...</value>
+  </data>
 </root>
