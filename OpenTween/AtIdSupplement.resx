@@ -277,6 +277,6 @@
     <value>AtIdSupplement</value>
   </data>
   <data name="&gt;&gt;$this.Type" xml:space="preserve">
-    <value>OpenTween.OTBaseForm, OpenTween, Version=0.1.0.0, Culture=neutral, PublicKeyToken=null</value>
+    <value>OpenTween.OTBaseForm, HinaTwin, Version=0.1.0.0, Culture=neutral, PublicKeyToken=null</value>
   </data>
 </root>
