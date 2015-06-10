@@ -623,6 +623,15 @@ namespace OpenTween.Properties {
         }
         
         /// <summary>
+        ///   アイコンを変更します。よろしいですか？ に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string ChangeIconToolStripMenuItem_Confirm {
+            get {
+                return ResourceManager.GetString("ChangeIconToolStripMenuItem_Confirm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   更新履歴
         ///
         ///==== Ver 1.2.6-beta1(2015/xx/xx)
@@ -723,6 +732,15 @@ namespace OpenTween.Properties {
         internal static string CheckNewVersionText9 {
             get {
                 return ResourceManager.GetString("CheckNewVersionText9", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   このソフトウェアは {0} 以降が必要です。 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string CheckRuntimeVersion_Error {
+            get {
+                return ResourceManager.GetString("CheckRuntimeVersion_Error", resourceCulture);
             }
         }
         
@@ -883,11 +901,20 @@ namespace OpenTween.Properties {
         }
         
         /// <summary>
+        ///   無効化 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string DisableButtonCaption {
+            get {
+                return ResourceManager.GetString("DisableButtonCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   無効 に類似しているローカライズされた文字列を検索します。
         /// </summary>
-        internal static string Disable {
+        internal static string Disabled {
             get {
-                return ResourceManager.GetString("Disable", resourceCulture);
+                return ResourceManager.GetString("Disabled", resourceCulture);
             }
         }
         
@@ -946,11 +973,20 @@ namespace OpenTween.Properties {
         }
         
         /// <summary>
+        ///   有効化 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string EnableButtonCaption {
+            get {
+                return ResourceManager.GetString("EnableButtonCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   有効 に類似しているローカライズされた文字列を検索します。
         /// </summary>
-        internal static string Enable {
+        internal static string Enabled {
             get {
-                return ResourceManager.GetString("Enable", resourceCulture);
+                return ResourceManager.GetString("Enabled", resourceCulture);
             }
         }
         
@@ -991,7 +1027,7 @@ namespace OpenTween.Properties {
         }
         
         /// <summary>
-        ///   一度にFav追加が実行できるのは250件までです に類似しているローカライズされた文字列を検索します。
+        ///   一度にFav追加が実行できるのは{0}件までです に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string FavoriteLimitCountText {
             get {
@@ -1451,15 +1487,6 @@ namespace OpenTween.Properties {
         }
         
         /// <summary>
-        ///   &lt;a href=&quot;https://twitter.com/&quot; rel=&quot;nofollow&quot;&gt;Keitai Mail&lt;/a&gt; に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string KeitaiMailSourceString {
-            get {
-                return ResourceManager.GetString("KeitaiMailSourceString", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   このリストを削除してもよろしいですか？ に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string ListManageDeleteLists1 {
@@ -1559,6 +1586,15 @@ namespace OpenTween.Properties {
         }
         
         /// <summary>
+        ///   読み込み中... に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string LoadingText {
+            get {
+                return ResourceManager.GetString("LoadingText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
         /// </summary>
         internal static System.Drawing.Bitmap LogoImage {
@@ -1639,6 +1675,15 @@ namespace OpenTween.Properties {
             get {
                 object obj = ResourceManager.GetObject("MultiMediaImage", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   (ミュート) に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MuteTabName {
+            get {
+                return ResourceManager.GetString("MuteTabName", resourceCulture);
             }
         }
         
@@ -1769,6 +1814,16 @@ namespace OpenTween.Properties {
         }
         
         /// <summary>
+        ///   型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
+        /// </summary>
+        internal static System.Drawing.Bitmap PlayableOverlayImage {
+            get {
+                object obj = ResourceManager.GetObject("PlayableOverlayImage", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   編集されていないため、公式RTとして投稿します。　よろしいですか？{0}[はい：公式RTで投稿]{0}[いいえ：非公式RTで投稿]{0}[キャンセル：投稿しない] に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string PostButton_Click1 {
@@ -1805,7 +1860,8 @@ namespace OpenTween.Properties {
         }
         
         /// <summary>
-        ///   画像を投稿します。よろしいですか？ に類似しているローカライズされた文字列を検索します。
+        ///   [投稿先: {0}]
+        ///{1} 枚の画像を投稿します。よろしいですか？ に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string PostPictureConfirm1 {
             get {
@@ -1837,6 +1893,50 @@ namespace OpenTween.Properties {
         internal static string PostPictureWarn2 {
             get {
                 return ResourceManager.GetString("PostPictureWarn2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   [投稿先: {0}]
+        ///&quot;{2}&quot; の投稿には対応していません。他の投稿先を使用してください。
+        ///
+        ///ファイル名: {3}
+        ///使用可能な投稿先: {1} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PostPictureWarn3 {
+            get {
+                return ResourceManager.GetString("PostPictureWarn3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   投稿画像選択 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PostPictureWarn4 {
+            get {
+                return ResourceManager.GetString("PostPictureWarn4", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   [投稿先: {0}]
+        ///ファイルが大きすぎます。ファイルサイズを小さくするか、他の投稿先を使用してください。
+        ///
+        ///ファイル名: {2}
+        ///使用可能な投稿先: {1} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PostPictureWarn5 {
+            get {
+                return ResourceManager.GetString("PostPictureWarn5", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   なし に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PostPictureWarn6 {
+            get {
+                return ResourceManager.GetString("PostPictureWarn6", resourceCulture);
             }
         }
         
@@ -2239,15 +2339,6 @@ namespace OpenTween.Properties {
         internal static string SearchItem4Url {
             get {
                 return ResourceManager.GetString("SearchItem4Url", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   類似画像を検索 に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string SearchSimilarImageText {
-            get {
-                return ResourceManager.GetString("SearchSimilarImageText", resourceCulture);
             }
         }
         
@@ -3045,6 +3136,33 @@ namespace OpenTween.Properties {
         }
         
         /// <summary>
+        ///   MuteUserIds取得エラー: {0} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string UpdateMuteUserIds_Error {
+            get {
+                return ResourceManager.GetString("UpdateMuteUserIds_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   MuteUserIds取得完了 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string UpdateMuteUserIds_Finish {
+            get {
+                return ResourceManager.GetString("UpdateMuteUserIds_Finish", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   MuteUserIds取得中... に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string UpdateMuteUserIds_Start {
+            get {
+                return ResourceManager.GetString("UpdateMuteUserIds_Start", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   適用 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string UserInfoButtonEdit_ClickText1 {
@@ -3122,15 +3240,6 @@ namespace OpenTween.Properties {
         internal static string VimeoInfoText6 {
             get {
                 return ResourceManager.GetString("VimeoInfoText6", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   &lt;a href=&quot;https://twitter.com/&quot; rel=&quot;nofollow&quot;&gt;web&lt;/a&gt; に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string WebSourceString {
-            get {
-                return ResourceManager.GetString("WebSourceString", resourceCulture);
             }
         }
         
