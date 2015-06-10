@@ -21,16 +21,21 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Xunit;
 using Xunit.Extensions;
+using Xunit.Sdk;
 
 namespace OpenTween
 {
-    class TestUtils
+    internal static class TestUtils
     {
         public static void CheckDeepCloning(object obj, object cloneObj)
         {
@@ -50,6 +55,18 @@ namespace OpenTween
             }
         }
 
+        public static MemoryImage CreateDummyImage()
+        {
+            using (var bitmap = new Bitmap(100, 100))
+            using (var stream = new MemoryStream())
+            {
+                bitmap.Save(stream, ImageFormat.Png);
+                stream.Position = 0;
+
+                return MemoryImage.CopyFromStream(stream);
+            }
+        }
+
         public static void FireEvent<T>(T control, string eventName) where T : Control
         {
             TestUtils.FireEvent(control, eventName, EventArgs.Empty);
@@ -61,6 +78,52 @@ namespace OpenTween
             var method = typeof(T).GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
 
             method.Invoke(control, new[] { e });
+        }
+
+        public static async Task<T> ThrowsAsync<T>(Func<Task> testCode) where T : Exception
+        {
+            var expectedType = typeof(T);
+            Exception exception = null;
+
+            try
+            {
+                await testCode();
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+            }
+
+            if (exception == null)
+                throw new ThrowsException(expectedType);
+
+            if (!exception.GetType().Equals(expectedType))
+                throw new ThrowsException(expectedType, exception);
+
+            return (T)exception;
+        }
+
+        public static async Task<T> ThrowsAnyAsync<T>(Func<Task> testCode) where T : Exception
+        {
+            var expectedType = typeof(T);
+            Exception exception = null;
+
+            try
+            {
+                await testCode();
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+            }
+
+            if (exception == null)
+                throw new ThrowsException(expectedType);
+
+            if (!expectedType.IsAssignableFrom(exception.GetType()))
+                throw new ThrowsException(expectedType, exception);
+
+            return (T)exception;
         }
     }
 }

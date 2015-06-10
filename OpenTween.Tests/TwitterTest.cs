@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using OpenTween.Api;
 using Xunit;
 using Xunit.Extensions;
 
@@ -88,6 +89,94 @@ namespace OpenTween
             };
             Assert.Equal(1210L, Twitter.FindTopOfReplyChain(posts, 1230L).StatusId);
             Assert.Equal(1210L, Twitter.FindTopOfReplyChain(posts, 1210L).StatusId);
+        }
+
+        [Fact]
+        public void ParseSource_Test()
+        {
+            var sourceHtml = "<a href=\"http://twitter.com\" rel=\"nofollow\">Twitter Web Client</a>";
+
+            var result = Twitter.ParseSource(sourceHtml);
+            Assert.Equal("Twitter Web Client", result.Item1);
+            Assert.Equal(new Uri("http://twitter.com/"), result.Item2);
+        }
+
+        [Fact]
+        public void ParseSource_PlainTextTest()
+        {
+            var sourceHtml = "web";
+
+            var result = Twitter.ParseSource(sourceHtml);
+            Assert.Equal("web", result.Item1);
+            Assert.Equal(null, result.Item2);
+        }
+
+        [Fact]
+        public void ParseSource_RelativeUriTest()
+        {
+            // 参照: https://twitter.com/kim_upsilon/status/477796052049752064
+            var sourceHtml = "<a href=\"erased_45416\" rel=\"nofollow\">erased_45416</a>";
+
+            var result = Twitter.ParseSource(sourceHtml);
+            Assert.Equal("erased_45416", result.Item1);
+            Assert.Equal(new Uri("https://twitter.com/erased_45416"), result.Item2);
+        }
+
+        [Fact]
+        public void ParseSource_EmptyTest()
+        {
+            // 参照: https://twitter.com/kim_upsilon/status/595156014032244738
+            var sourceHtml = "";
+
+            var result = Twitter.ParseSource(sourceHtml);
+            Assert.Equal("", result.Item1);
+            Assert.Equal(null, result.Item2);
+        }
+
+        [Fact]
+        public void ParseSource_NullTest()
+        {
+            string sourceHtml = null;
+
+            var result = Twitter.ParseSource(sourceHtml);
+            Assert.Equal("", result.Item1);
+            Assert.Equal(null, result.Item2);
+        }
+
+        [Fact]
+        public void ParseSource_UnescapeTest()
+        {
+            string sourceHtml = "<a href=\"http://example.com/?aaa=123&amp;bbb=456\" rel=\"nofollow\">&lt;&lt;hogehoge&gt;&gt;</a>";
+
+            var result = Twitter.ParseSource(sourceHtml);
+            Assert.Equal("<<hogehoge>>", result.Item1);
+            Assert.Equal(new Uri("http://example.com/?aaa=123&bbb=456"), result.Item2);
+        }
+
+        [Fact]
+        public void ParseSource_UnescapeNoUriTest()
+        {
+            string sourceHtml = "&lt;&lt;hogehoge&gt;&gt;";
+
+            var result = Twitter.ParseSource(sourceHtml);
+            Assert.Equal("<<hogehoge>>", result.Item1);
+            Assert.Equal(null, result.Item2);
+        }
+
+        [Fact]
+        public void GetQuoteTweetStatusIds_Test()
+        {
+            var entities = new[]
+            {
+                new TwitterEntityUrl
+                {
+                    Url = "https://t.co/3HXq0LrbJb",
+                    ExpandedUrl = "https://twitter.com/kim_upsilon/status/599261132361072640",
+                },
+            };
+
+            var statusIds = Twitter.GetQuoteTweetStatusIds(entities);
+            Assert.Equal(new[] { 599261132361072640L }, statusIds);
         }
     }
 }

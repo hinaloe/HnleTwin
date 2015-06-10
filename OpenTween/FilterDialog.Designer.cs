@@ -67,6 +67,7 @@
             this.ButtonEdit = new System.Windows.Forms.Button();
             this.ButtonDelete = new System.Windows.Forms.Button();
             this.GroupBox2 = new System.Windows.Forms.GroupBox();
+            this.buttonRuleToggleEnabled = new System.Windows.Forms.Button();
             this.ListFilters = new System.Windows.Forms.ListBox();
             this.EditFilterGroup = new System.Windows.Forms.GroupBox();
             this.Label11 = new System.Windows.Forms.Label();
@@ -95,6 +96,7 @@
             this.MSG1 = new System.Windows.Forms.TextBox();
             this.MSG2 = new System.Windows.Forms.TextBox();
             this.GroupBox1 = new System.Windows.Forms.GroupBox();
+            this.labelMuteTab = new System.Windows.Forms.Label();
             this.GroupTab.SuspendLayout();
             this.GroupBox2.SuspendLayout();
             this.EditFilterGroup.SuspendLayout();
@@ -362,6 +364,7 @@
             // GroupBox2
             // 
             resources.ApplyResources(this.GroupBox2, "GroupBox2");
+            this.GroupBox2.Controls.Add(this.buttonRuleToggleEnabled);
             this.GroupBox2.Controls.Add(this.ButtonRuleMove);
             this.GroupBox2.Controls.Add(this.ButtonRuleCopy);
             this.GroupBox2.Controls.Add(this.ButtonRuleDown);
@@ -374,14 +377,24 @@
             this.GroupBox2.Name = "GroupBox2";
             this.GroupBox2.TabStop = false;
             // 
+            // buttonRuleToggleEnabled
+            // 
+            resources.ApplyResources(this.buttonRuleToggleEnabled, "buttonRuleToggleEnabled");
+            this.buttonRuleToggleEnabled.Name = "buttonRuleToggleEnabled";
+            this.buttonRuleToggleEnabled.UseVisualStyleBackColor = true;
+            this.buttonRuleToggleEnabled.Click += new System.EventHandler(this.buttonRuleToggleEnabled_Click);
+            // 
             // ListFilters
             // 
+            this.ListFilters.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
             resources.ApplyResources(this.ListFilters, "ListFilters");
             this.ListFilters.FormattingEnabled = true;
             this.ListFilters.Name = "ListFilters";
             this.ListFilters.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
+            this.ListFilters.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.ListFilters_DrawItem);
             this.ListFilters.SelectedIndexChanged += new System.EventHandler(this.ListFilters_SelectedIndexChanged);
             this.ListFilters.DoubleClick += new System.EventHandler(this.ListFilters_DoubleClick);
+            this.ListFilters.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ListFilters_KeyDown);
             // 
             // EditFilterGroup
             // 
@@ -392,6 +405,7 @@
             this.EditFilterGroup.Controls.Add(this.GroupBox1);
             this.EditFilterGroup.Controls.Add(this.ButtonCancel);
             this.EditFilterGroup.Controls.Add(this.ButtonOK);
+            this.EditFilterGroup.Controls.Add(this.labelMuteTab);
             this.EditFilterGroup.Name = "EditFilterGroup";
             this.EditFilterGroup.TabStop = false;
             // 
@@ -585,6 +599,11 @@
             this.GroupBox1.Name = "GroupBox1";
             this.GroupBox1.TabStop = false;
             // 
+            // labelMuteTab
+            // 
+            resources.ApplyResources(this.labelMuteTab, "labelMuteTab");
+            this.labelMuteTab.Name = "labelMuteTab";
+            // 
             // FilterDialog
             // 
             resources.ApplyResources(this, "$this");
@@ -686,5 +705,7 @@
         internal System.Windows.Forms.TextBox MSG2;
         internal System.Windows.Forms.GroupBox GroupBox1;
         internal System.Windows.Forms.CheckBox CheckProtected;
+        private System.Windows.Forms.Label labelMuteTab;
+        private System.Windows.Forms.Button buttonRuleToggleEnabled;
     }
 }

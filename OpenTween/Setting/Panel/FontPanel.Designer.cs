@@ -46,6 +46,7 @@
             this.btnDetail = new System.Windows.Forms.Button();
             this.lblDetail = new System.Windows.Forms.Label();
             this.Label26 = new System.Windows.Forms.Label();
+            this.checkBoxUseTwemoji = new System.Windows.Forms.CheckBox();
             this.btnOWL = new System.Windows.Forms.Button();
             this.lblOWL = new System.Windows.Forms.Label();
             this.Label24 = new System.Windows.Forms.Label();
@@ -76,6 +77,7 @@
             this.GroupBox1.Controls.Add(this.btnDetail);
             this.GroupBox1.Controls.Add(this.lblDetail);
             this.GroupBox1.Controls.Add(this.Label26);
+            this.GroupBox1.Controls.Add(this.checkBoxUseTwemoji);
             this.GroupBox1.Controls.Add(this.btnOWL);
             this.GroupBox1.Controls.Add(this.lblOWL);
             this.GroupBox1.Controls.Add(this.Label24);
@@ -94,6 +96,7 @@
             resources.ApplyResources(this.btnRetweet, "btnRetweet");
             this.btnRetweet.Name = "btnRetweet";
             this.btnRetweet.UseVisualStyleBackColor = true;
+            this.btnRetweet.Click += new System.EventHandler(this.btnRetweet_Click);
             // 
             // lblRetweet
             // 
@@ -118,6 +121,7 @@
             resources.ApplyResources(this.btnDetailLink, "btnDetailLink");
             this.btnDetailLink.Name = "btnDetailLink";
             this.btnDetailLink.UseVisualStyleBackColor = true;
+            this.btnDetailLink.Click += new System.EventHandler(this.btnDetailLink_Click);
             // 
             // lblDetailLink
             // 
@@ -135,6 +139,7 @@
             resources.ApplyResources(this.btnUnread, "btnUnread");
             this.btnUnread.Name = "btnUnread";
             this.btnUnread.UseVisualStyleBackColor = true;
+            this.btnUnread.Click += new System.EventHandler(this.btnUnread_Click);
             // 
             // lblUnread
             // 
@@ -152,6 +157,7 @@
             resources.ApplyResources(this.btnDetailBack, "btnDetailBack");
             this.btnDetailBack.Name = "btnDetailBack";
             this.btnDetailBack.UseVisualStyleBackColor = true;
+            this.btnDetailBack.Click += new System.EventHandler(this.btnDetailBack_Click);
             // 
             // lblDetailBackcolor
             // 
@@ -169,6 +175,7 @@
             resources.ApplyResources(this.btnDetail, "btnDetail");
             this.btnDetail.Name = "btnDetail";
             this.btnDetail.UseVisualStyleBackColor = true;
+            this.btnDetail.Click += new System.EventHandler(this.btnDetail_Click);
             // 
             // lblDetail
             // 
@@ -181,11 +188,20 @@
             resources.ApplyResources(this.Label26, "Label26");
             this.Label26.Name = "Label26";
             // 
+            // checkBoxUseTwemoji
+            // 
+            resources.ApplyResources(this.checkBoxUseTwemoji, "checkBoxUseTwemoji");
+            this.checkBoxUseTwemoji.Checked = true;
+            this.checkBoxUseTwemoji.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxUseTwemoji.Name = "checkBoxUseTwemoji";
+            this.checkBoxUseTwemoji.UseVisualStyleBackColor = true;
+            // 
             // btnOWL
             // 
             resources.ApplyResources(this.btnOWL, "btnOWL");
             this.btnOWL.Name = "btnOWL";
             this.btnOWL.UseVisualStyleBackColor = true;
+            this.btnOWL.Click += new System.EventHandler(this.btnOWL_Click);
             // 
             // lblOWL
             // 
@@ -203,6 +219,7 @@
             resources.ApplyResources(this.btnFav, "btnFav");
             this.btnFav.Name = "btnFav";
             this.btnFav.UseVisualStyleBackColor = true;
+            this.btnFav.Click += new System.EventHandler(this.btnFav_Click);
             // 
             // lblFav
             // 
@@ -220,6 +237,7 @@
             resources.ApplyResources(this.btnListFont, "btnListFont");
             this.btnListFont.Name = "btnListFont";
             this.btnListFont.UseVisualStyleBackColor = true;
+            this.btnListFont.Click += new System.EventHandler(this.btnListFont_Click);
             // 
             // lblListFont
             // 
@@ -263,6 +281,7 @@
         internal System.Windows.Forms.Button btnDetail;
         internal System.Windows.Forms.Label lblDetail;
         internal System.Windows.Forms.Label Label26;
+        private System.Windows.Forms.CheckBox checkBoxUseTwemoji;
         internal System.Windows.Forms.Button btnOWL;
         internal System.Windows.Forms.Label lblOWL;
         internal System.Windows.Forms.Label Label24;

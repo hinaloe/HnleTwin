@@ -22,6 +22,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
@@ -78,6 +79,10 @@ namespace OpenTween.Api
             if (!header.ContainsKey(headerName))
                 return null;
 
+            // たまに出てくる空文字列は無視する
+            if (string.IsNullOrEmpty(header[headerName]))
+                return null;
+
             switch (header[headerName])
             {
                 case "read-write-directmessages":
@@ -87,9 +92,6 @@ namespace OpenTween.Api
                     return TwitterApiAccessLevel.ReadWrite;
                 case "read":
                     return TwitterApiAccessLevel.Read;
-                case "":
-                    // たまに出てくる空文字列は無視する
-                    return null;
                 default:
                     MyCommon.TraceOut("Unknown ApiAccessLevel:" + header[headerName]);
                     return TwitterApiAccessLevel.ReadWriteAndDirectMessage;
@@ -154,7 +156,7 @@ namespace OpenTween.Api
                 this.AccessLimitUpdated(this, e);
         }
 
-        public class EndpointLimits
+        public class EndpointLimits : IEnumerable<KeyValuePair<string, ApiLimit>>
         {
             public readonly TwitterApiStatus Owner;
 
@@ -195,6 +197,16 @@ namespace OpenTween.Api
                 }
 
                 this.Owner.OnAccessLimitUpdated(new AccessLimitUpdatedEventArgs(null));
+            }
+
+            public IEnumerator<KeyValuePair<string, ApiLimit>> GetEnumerator()
+            {
+                return this.innerDict.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
             }
         }
     }

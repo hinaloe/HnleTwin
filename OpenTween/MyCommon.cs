@@ -42,13 +42,15 @@ using System.Runtime.Serialization.Json;
 using System.Reflection;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.Net;
+using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using OpenTween.Api;
 
 namespace OpenTween
 {
-    public sealed class MyCommon
+    public static class MyCommon
     {
         private static readonly object LockObj = new object();
         public static bool _endingFlag;        //終了フラグ
@@ -158,6 +160,7 @@ namespace OpenTween
             public const string REPLY = "Reply";
             public const string DM = "Direct";
             public const string FAV = "Favorites";
+            public static readonly string MUTE = Properties.Resources.MuteTabName;
 
             //private string dummy;
 
@@ -212,10 +215,26 @@ namespace OpenTween
             ListUserSubscribed = 4096,
             ListUserUnsubscribed = 8192,
             ListDestroyed = 16384,
+            Mute = 32768,
+            Unmute = 65536,
 
             All = (None | Favorite | Unfavorite | Follow | ListMemberAdded | ListMemberRemoved |
                    Block | Unblock | UserUpdate | Deleted | ListCreated | ListUpdated | Unfollow |
-                   ListUserSubscribed | ListUserUnsubscribed | ListDestroyed),
+                   ListUserSubscribed | ListUserUnsubscribed | ListDestroyed |
+                   Mute | Unmute),
+        }
+
+        public static _Assembly EntryAssembly { get; internal set; }
+        public static string FileVersion { get; internal set; }
+
+        static MyCommon()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            MyCommon.EntryAssembly = assembly;
+
+            var fileVersionAttribute = (AssemblyFileVersionAttribute)assembly
+                .GetCustomAttributes(typeof(AssemblyFileVersionAttribute)).First();
+            MyCommon.FileVersion = fileVersionAttribute.Version;
         }
 
         public static string GetErrorLogPath()
@@ -267,7 +286,7 @@ namespace OpenTween
                     writer.WriteLine(Properties.Resources.TraceOutText3);
                     writer.WriteLine(Properties.Resources.TraceOutText4, Environment.OSVersion.VersionString);
                     writer.WriteLine(Properties.Resources.TraceOutText5, Environment.Version.ToString());
-                    writer.WriteLine(Properties.Resources.TraceOutText6, MyCommon.GetAssemblyName(), fileVersion);
+                    writer.WriteLine(Properties.Resources.TraceOutText6, MyCommon.GetAssemblyName(), FileVersion);
                     writer.WriteLine(Message);
                     writer.WriteLine();
                 }
@@ -389,7 +408,7 @@ namespace OpenTween
                     writer.WriteLine(Properties.Resources.UnhandledExceptionText4);
                     writer.WriteLine(Properties.Resources.UnhandledExceptionText5, Environment.OSVersion.VersionString);
                     writer.WriteLine(Properties.Resources.UnhandledExceptionText6, Environment.Version.ToString());
-                    writer.WriteLine(Properties.Resources.UnhandledExceptionText7, MyCommon.GetAssemblyName(), fileVersion);
+                    writer.WriteLine(Properties.Resources.UnhandledExceptionText7, MyCommon.GetAssemblyName(), FileVersion);
 
                     writer.Write(ExceptionOutMessage(ex, ref IsTerminatePermission));
                     writer.Flush();
@@ -404,9 +423,8 @@ namespace OpenTween
                     case DialogResult.No:
                         return false;
                     case DialogResult.Cancel:
-                        return IsTerminatePermission;
                     default:
-                        throw new Exception("");
+                        return IsTerminatePermission;
                 }
             }
         }
@@ -498,7 +516,7 @@ namespace OpenTween
                 var idnConverter = new IdnMapping();
                 uriBuilder.Host = idnConverter.GetAscii(uriBuilder.Host);
 
-                return uriBuilder.Uri.ToString();
+                return uriBuilder.Uri.AbsoluteUri;
             }
             catch (Exception)
             {
@@ -518,7 +536,7 @@ namespace OpenTween
                     uriBuilder.Host = idnConverter.GetUnicode(uriBuilder.Host);
                 }
 
-                return uriBuilder.Uri.ToString();
+                return uriBuilder.Uri.AbsoluteUri;
             }
             catch (Exception)
             {
@@ -711,12 +729,6 @@ namespace OpenTween
             return newBytes;
         }
 
-        public static bool IsNT6()
-        {
-            //NT6 kernelかどうか検査
-            return Environment.OSVersion.Platform == PlatformID.Win32NT && Environment.OSVersion.Version.Major == 6;
-        }
-
         [FlagsAttribute()]
         public enum TabUsageType
         {
@@ -732,24 +744,10 @@ namespace OpenTween
             Lists = 256,
             Related = 512,
             UserTimeline = 1024,
+            Mute = 2048,
             //RTMyTweet
             //RTByOthers
             //RTByMe
-        }
-
-        public static string fileVersion = "";
-
-        public static string GetUserAgentString(bool fakeMSIE = false)
-        {
-            if (string.IsNullOrEmpty(fileVersion))
-            {
-                throw new Exception("fileversion is not Initialized.");
-            }
-
-            if (fakeMSIE)
-                return GetAssemblyName() + "/" + fileVersion + " (compatible; MSIE 10.0)";
-            else
-                return GetAssemblyName() + "/" + fileVersion;
         }
 
         public static TwitterApiStatus TwitterApiInfo = new TwitterApiStatus();
@@ -877,8 +875,6 @@ namespace OpenTween
             return MyCommon.EntryAssembly.GetName().Name;
         }
 
-        internal static _Assembly EntryAssembly = Assembly.GetEntryAssembly();
-
         /// <summary>
         /// 文字列中に含まれる %AppName% をアプリケーション名に置換する
         /// </summary>
@@ -909,43 +905,51 @@ namespace OpenTween
         /// <returns>
         /// 生成されたバージョン番号の文字列
         /// </returns>
-        public static string GetReadableVersion(string fileVersion = null)
+        public static string GetReadableVersion(string versionStr = null)
         {
-            if (fileVersion == null)
-            {
-                fileVersion = MyCommon.fileVersion;
-            }
+            var version = Version.Parse(versionStr ?? MyCommon.FileVersion);
 
-            if (string.IsNullOrEmpty(fileVersion))
-            {
-                return null;
-            }
+            return GetReadableVersion(version);
+        }
 
-            int[] version = fileVersion.Split('.')
-                .Select(x => int.Parse(x)).ToArray();
+        /// <summary>
+        /// 表示用のバージョン番号の文字列を生成する
+        /// </summary>
+        /// <remarks>
+        /// バージョン1.0.0.1のように末尾が0でない（＝開発版）の場合は「1.0.1-dev」のように出力される
+        /// </remarks>
+        /// <returns>
+        /// 生成されたバージョン番号の文字列
+        /// </returns>
+        public static string GetReadableVersion(Version version)
+        {
+            var versionNum = new[] { version.Major, version.Minor, version.Build, version.Revision };
 
-            if (version[3] == 0)
+            if (versionNum[3] == 0)
             {
-                return string.Format("{0}.{1}.{2}", version[0], version[1], version[2]);
+                return string.Format("{0}.{1}.{2}", versionNum[0], versionNum[1], versionNum[2]);
             }
             else
             {
-                version[2] = version[2] + 1;
+                versionNum[2] = versionNum[2] + 1;
 
                 // 10を越えたら桁上げ
-                if (version[2] >= 10)
+                if (versionNum[2] >= 10)
                 {
-                    version[1] += version[2] / 10;
-                    version[2] %= 10;
+                    versionNum[1] += versionNum[2] / 10;
+                    versionNum[2] %= 10;
 
-                    if (version[1] >= 10)
+                    if (versionNum[1] >= 10)
                     {
-                        version[0] += version[1] / 10;
-                        version[1] %= 10;
+                        versionNum[0] += versionNum[1] / 10;
+                        versionNum[1] %= 10;
                     }
                 }
 
-                return string.Format("{0}.{1}.{2}-beta{3}", version[0], version[1], version[2], version[3]);
+                if (versionNum[3] == 1)
+                    return string.Format("{0}.{1}.{2}-dev", versionNum[0], versionNum[1], versionNum[2]);
+                else
+                    return string.Format("{0}.{1}.{2}-dev (Build {3})", versionNum[0], versionNum[1], versionNum[2], versionNum[3]);
             }
         }
 
@@ -962,6 +966,78 @@ namespace OpenTween
         public static string GetStatusUrl(string screenName, long statusId)
         {
             return TwitterUrl + screenName + "/status/" + statusId.ToString();
+        }
+
+        /// <summary>
+        /// 指定された IDictionary を元にクエリ文字列を生成します
+        /// </summary>
+        /// <param name="param">生成するクエリの key-value コレクション</param>
+        public static string BuildQueryString(IDictionary<string, string> param)
+        {
+            if (param == null || param.Count == 0)
+                return string.Empty;
+
+            var query = param
+                .Where(x => x.Value != null)
+                .Select(x => EscapeQueryString(x.Key) + '=' + EscapeQueryString(x.Value));
+
+            return string.Join("&", query);
+        }
+
+        // .NET 4.5+: Reserved characters のうち、Uriクラスによってエスケープ強制解除されてしまうものも最初から Unreserved として扱う
+        private static readonly HashSet<char> UnreservedChars =
+            new HashSet<char>("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.~!'()*:");
+
+        /// <summary>
+        /// 2バイト文字も考慮したクエリ用エンコード
+        /// </summary>
+        /// <param name="stringToEncode">エンコードする文字列</param>
+        /// <returns>エンコード結果文字列</returns>
+        public static string EscapeQueryString(string stringToEncode)
+        {
+            var sb = new StringBuilder(stringToEncode.Length * 2);
+
+            foreach (var b in Encoding.UTF8.GetBytes(stringToEncode))
+            {
+                if (UnreservedChars.Contains((char)b))
+                    sb.Append((char)b);
+                else
+                    sb.AppendFormat("%{0:X2}", b);
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 指定された範囲の整数を昇順に列挙します
+        /// </summary>
+        /// <remarks>
+        /// start, start + 1, start + 2, ..., end の範囲の数列を生成します
+        /// </remarks>
+        /// <param name="from">数列の先頭の値 (最小値)</param>
+        /// <param name="to">数列の末尾の値 (最大値)</param>
+        /// <returns>整数を列挙する IEnumerable インスタンス</returns>
+        public static IEnumerable<int> CountUp(int from, int to)
+        {
+            if (from > to)
+                return Enumerable.Empty<int>();
+
+            return Enumerable.Range(from, to - from + 1);
+        }
+
+        /// <summary>
+        /// 指定された範囲の整数を降順に列挙します
+        /// </summary>
+        /// <remarks>
+        /// start, start - 1, start - 2, ..., end の範囲の数列を生成します
+        /// </remarks>
+        /// <param name="from">数列の先頭の値 (最大値)</param>
+        /// <param name="to">数列の末尾の値 (最小値)</param>
+        /// <returns>整数を列挙する IEnumerable インスタンス</returns>
+        public static IEnumerable<int> CountDown(int from, int to)
+        {
+            for (var i = from; i >= to; i--)
+                yield return i;
         }
     }
 }

@@ -20,7 +20,7 @@
 // for more details. 
 // 
 // You should have received a copy of the GNU General public License along
-// with this program. if (not, see <http://www.gnu.org/licenses/>, or write to
+// with this program. If not, see <http://www.gnu.org/licenses/>, or write to
 // the Free Software Foundation, Inc., 51 Franklin Street - Fifth Floor,
 // Boston, MA 02110-1301, USA.
 
@@ -48,7 +48,6 @@ namespace OpenTween
         private const string GetMethod = "GET";
 
         private IHttpConnection httpCon; //HttpConnectionApi or HttpConnectionOAuth
-        private HttpVarious httpConVar = new HttpVarious();
 
         private enum AuthMethod
         {
@@ -145,7 +144,7 @@ namespace OpenTween
         {
             Uri authUri = null;
             bool result = ((HttpOAuthApiProxy)httpCon).AuthenticatePinFlowRequest(RequestTokenUrl, AuthorizeUrl, ref requestToken, ref authUri);
-            content = authUri.ToString();
+            content = authUri.AbsoluteUri;
             return result;
         }
 
@@ -164,13 +163,16 @@ namespace OpenTween
             this.Initialize("", "", "", 0);
         }
 
-        public HttpStatusCode UpdateStatus(string status, long? replyToId, ref string content)
+        public HttpStatusCode UpdateStatus(string status, long? replyToId, List<long> mediaIds, ref string content)
         {
             Dictionary<string, string> param = new Dictionary<string, string>();
             param.Add("status", status);
             if (replyToId != null) param.Add("in_reply_to_status_id", replyToId.ToString());
             param.Add("include_entities", "true");
             //if (AppendSettingDialog.Instance.ShortenTco && AppendSettingDialog.Instance.UrlConvertAuto) param.Add("wrap_links", "true")
+
+            if (mediaIds != null && mediaIds.Count > 0)
+                param.Add("media_ids", string.Join(",", mediaIds));
 
             return httpCon.GetContent(PostMethod,
                 this.CreateTwitterUri("/1.1/statuses/update.json"),
@@ -199,6 +201,21 @@ namespace OpenTween
                 ref content,
                 this.CreateRatelimitHeadersDict(),
                 this.CreateApiCalllback("/statuses/update_with_media"));
+        }
+
+        public HttpStatusCode UploadMedia(FileInfo mediaFile, ref string content)
+        {
+            //画像投稿専用エンドポイント
+            List<KeyValuePair<string, FileInfo>> binary = new List<KeyValuePair<string, FileInfo>>();
+            binary.Add(new KeyValuePair<string, FileInfo>("media", mediaFile));
+
+            return httpCon.GetContent(PostMethod,
+                this.CreateTwitterUploadUri("/1.1/media/upload.json"),
+                null,
+                binary,
+                ref content,
+                null,
+                null);
         }
 
         public HttpStatusCode DestroyStatus(long id)
@@ -758,10 +775,15 @@ namespace OpenTween
         {
             Dictionary<string, string> param = new Dictionary<string, string>();
 
-            param.Add("name", WebUtility.HtmlEncode(name));
+            param.Add("name", name);
             param.Add("url", url);
-            param.Add("location", WebUtility.HtmlEncode(location));
-            param.Add("description", WebUtility.HtmlEncode(description));
+            param.Add("location", location);
+
+            // name, location, description に含まれる < > " の文字はTwitter側で除去されるが、
+            // twitter.com の挙動では description でのみ &lt; 等の文字参照を使って表示することができる
+            var escapedDescription = description.Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");
+            param.Add("description", escapedDescription);
+
             param.Add("include_entities", "true");
 
             return httpCon.GetContent(PostMethod,
@@ -801,6 +823,21 @@ namespace OpenTween
                 this.CreateApiCalllback("/blocks/ids"));
         }
 
+        public HttpStatusCode GetMuteUserIds(ref string content, long? cursor)
+        {
+            var param = new Dictionary<string, string>();
+
+            if (cursor != null)
+                param.Add("cursor", cursor.ToString());
+
+            return httpCon.GetContent(GetMethod,
+                this.CreateTwitterUri("/1.1/mutes/users/ids.json"),
+                param,
+                ref content,
+                this.CreateRatelimitHeadersDict(),
+                this.CreateApiCalllback("/mutes/users/ids"));
+        }
+
         public HttpStatusCode GetConfiguration(ref string content)
         {
             return httpCon.GetContent(GetMethod,
@@ -825,6 +862,7 @@ namespace OpenTween
         private static string _twitterUrl = "api.twitter.com";
         private static string _twitterUserStreamUrl = "userstream.twitter.com";
         private static string _twitterStreamUrl = "stream.twitter.com";
+        private static string _twitterUploadUrl = "upload.twitter.com";
 
         private Uri CreateTwitterUri(string path)
         {
@@ -839,6 +877,11 @@ namespace OpenTween
         private Uri CreateTwitterStreamUri(string path)
         {
             return new Uri(string.Format("{0}{1}{2}", "http://", _twitterStreamUrl, path));
+        }
+
+        private Uri CreateTwitterUploadUri(string path)
+        {
+            return new Uri(string.Format("{0}{1}{2}", "https://", _twitterUploadUrl, path));
         }
 
         public static string TwitterUrl

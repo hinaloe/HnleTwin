@@ -39,7 +39,8 @@ namespace OpenTween.OpenTweenCustomControl
     public sealed class DetailsListView : ListView
     {
         private Rectangle changeBounds;
-        private EventHandlerList _handlers = new EventHandlerList();
+
+        public ContextMenuStrip ColumnHeaderContextMenuStrip { get; set; }
 
         public event EventHandler VScrolled;
         public event EventHandler HScrolled;
@@ -95,6 +96,39 @@ namespace OpenTween.OpenTweenCustomControl
         //        base.VirtualListSize = value;
         //    }
         //}
+
+        /// <summary>
+        /// 複数選択時の起点になるアイテム (selection mark) の位置を取得・設定する
+        /// </summary>
+        /// <remarks>
+        /// Items[idx].Selected の設定では mark が設定されるが、SelectedIndices.Add(idx) では設定されないため、
+        /// 主に後者と合わせて使用する
+        /// </remarks>
+        public int SelectionMark
+        {
+            get { return NativeMethods.ListView_GetSelectionMark(this.Handle); }
+            set { NativeMethods.ListView_SetSelectionMark(this.Handle, value); }
+        }
+
+        public void SelectItems(int[] indices)
+        {
+            foreach (var index in indices)
+            {
+                if (index < 0 || index >= this.VirtualListSize)
+                    throw new ArgumentOutOfRangeException("indices");
+
+                NativeMethods.SelectItem(this, index);
+            }
+
+            this.OnSelectedIndexChanged(EventArgs.Empty);
+        }
+
+        public void SelectAllItems()
+        {
+            NativeMethods.SelectAllItems(this);
+
+            this.OnSelectedIndexChanged(EventArgs.Empty);
+        }
 
         public void ChangeItemBackColor(int index, Color backColor)
         {
@@ -208,44 +242,6 @@ namespace OpenTween.OpenTweenCustomControl
             }
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        private struct SCROLLINFO
-        {
-            public int cbSize;
-            public int fMask;
-            public int nMin;
-            public int nMax;
-            public int nPage;
-            public int nPos;
-            public int nTrackPos;
-        }
-
-        private enum ScrollBarDirection
-        {
-            SB_HORZ = 0,
-            SB_VERT = 1,
-            SB_CTL = 2,
-            SB_BOTH = 3,
-        }
-
-        private enum ScrollInfoMask
-        {
-            SIF_RANGE = 0x1,
-            SIF_PAGE = 0x2,
-            SIF_POS = 0x4,
-            SIF_DISABLENOSCROLL = 0x8,
-            SIF_TRACKPOS = 0x10,
-            SIF_ALL = (SIF_RANGE | SIF_PAGE | SIF_POS | SIF_TRACKPOS),
-        }
-
-        [DllImport("user32.dll")]
-        private static extern int GetScrollInfo(IntPtr hWnd, ScrollBarDirection fnBar, ref SCROLLINFO lpsi);
-
-        private SCROLLINFO si = new SCROLLINFO {
-            cbSize = Marshal.SizeOf(new SCROLLINFO()),
-            fMask = (int)ScrollInfoMask.SIF_POS
-        };
-
         [DebuggerStepThrough()]
         protected override void WndProc(ref Message m)
         {
@@ -256,6 +252,7 @@ namespace OpenTween.OpenTweenCustomControl
             const int WM_HSCROLL = 0x114;
             const int WM_VSCROLL = 0x115;
             const int WM_KEYDOWN = 0x100;
+            const int WM_CONTEXTMENU = 0x7B;
             const int LVM_SETITEMCOUNT = 0x102F;
             const long LVSICF_NOSCROLL = 0x2;
             const long LVSICF_NOINVALIDATEALL = 0x1;
@@ -272,7 +269,7 @@ namespace OpenTween.OpenTweenCustomControl
                 case WM_PAINT:
                     if (this.changeBounds != Rectangle.Empty)
                     {
-                        Win32Api.ValidateRect(this.Handle, IntPtr.Zero);
+                        NativeMethods.ValidateRect(this.Handle, IntPtr.Zero);
                         this.Invalidate(this.changeBounds);
                         this.changeBounds = Rectangle.Empty;
                     }
@@ -288,10 +285,17 @@ namespace OpenTween.OpenTweenCustomControl
                 case WM_MOUSEWHEEL:
                 case WM_MOUSEHWHEEL:
                 case WM_KEYDOWN:
-                    if (GetScrollInfo(this.Handle, ScrollBarDirection.SB_VERT, ref si) != 0)
-                        vPos = si.nPos;
-                    if (GetScrollInfo(this.Handle, ScrollBarDirection.SB_HORZ, ref si) != 0)
-                        hPos = si.nPos;
+                    vPos = NativeMethods.GetScrollPosition(this, NativeMethods.ScrollBarDirection.SB_VERT);
+                    hPos = NativeMethods.GetScrollPosition(this, NativeMethods.ScrollBarDirection.SB_HORZ);
+                    break;
+                case WM_CONTEXTMENU:
+                    if (m.WParam != this.Handle)
+                    {
+                        //カラムヘッダメニューを表示
+                        if (this.ColumnHeaderContextMenuStrip != null)
+                            this.ColumnHeaderContextMenuStrip.Show(new Point(m.LParam.ToInt32()));
+                        return;
+                    }
                     break;
                 case LVM_SETITEMCOUNT:
                     m.LParam = new IntPtr(LVSICF_NOSCROLL | LVSICF_NOINVALIDATEALL);
@@ -313,11 +317,11 @@ namespace OpenTween.OpenTweenCustomControl
             if (this.IsDisposed) return;
 
             if (vPos != -1)
-                if (GetScrollInfo(this.Handle, ScrollBarDirection.SB_VERT, ref si) != 0 && vPos != si.nPos)
+                if (vPos != NativeMethods.GetScrollPosition(this, NativeMethods.ScrollBarDirection.SB_VERT))
                     if (VScrolled != null)
                         VScrolled(this, EventArgs.Empty);
             if (hPos != -1)
-                if (GetScrollInfo(this.Handle, ScrollBarDirection.SB_HORZ, ref si) != 0 && hPos != si.nPos)
+                if (hPos != NativeMethods.GetScrollPosition(this, NativeMethods.ScrollBarDirection.SB_HORZ))
                     if (HScrolled != null)
                         HScrolled(this, EventArgs.Empty);
         }

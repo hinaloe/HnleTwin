@@ -24,9 +24,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
+using OpenTween.Connection;
 
 namespace OpenTween.Thumbnail.Services
 {
@@ -40,44 +42,48 @@ namespace OpenTween.Thumbnail.Services
         /// </summary>
         internal static Action<HttpConnectionOAuth> InitializeOAuthToken;
 
-        public override ThumbnailInfo GetThumbnailInfo(string url, PostClass post)
+        public override Task<ThumbnailInfo> GetThumbnailInfoAsync(string url, PostClass post, CancellationToken token)
         {
-            if (InitializeOAuthToken == null)
-                return null;
-
-            if (!url.StartsWith(@"https://ton.twitter.com/1.1/ton/data/"))
-                return null;
-
-            return new TonTwitterCom.Thumbnail
+            return Task.Run<ThumbnailInfo>(() =>
             {
-                ImageUrl = url,
-                ThumbnailUrl = url,
-                TooltipText = null,
-                FullSizeImageUrl = url,
-            };
+                if (InitializeOAuthToken == null)
+                    return null;
+
+                if (!url.StartsWith(@"https://ton.twitter.com/1.1/ton/data/"))
+                    return null;
+
+                return new TonTwitterCom.Thumbnail
+                {
+                    ImageUrl = url,
+                    ThumbnailUrl = url,
+                    TooltipText = null,
+                    FullSizeImageUrl = url,
+                };
+            }, token);
         }
 
         public class Thumbnail : ThumbnailInfo
         {
-            public override Task<MemoryImage> LoadThumbnailImageAsync(CancellationToken token)
+            public override Task<MemoryImage> LoadThumbnailImageAsync(HttpClient http, CancellationToken cancellationToken)
             {
-                return Task.Factory.StartNew(() =>
+                // TODO: HttpClient を使用したコードに置き換えたい
+                return Task.Run(async () =>
                 {
                     var oauth = new HttpOAuthApiProxy();
                     TonTwitterCom.InitializeOAuthToken(oauth);
 
                     Stream response = null;
-                    var statusCode = oauth.GetContent("GET", new Uri(this.ThumbnailUrl), null, ref response, MyCommon.GetUserAgentString());
+                    var statusCode = oauth.GetContent("GET", new Uri(this.ThumbnailUrl), null, ref response, Networking.GetUserAgentString());
 
                     using (response)
                     {
-                        if (statusCode == HttpStatusCode.OK)
-                            return MemoryImage.CopyFromStream(response);
-                        else
+                        if (statusCode != HttpStatusCode.OK)
                             throw new WebException(statusCode.ToString(), WebExceptionStatus.ProtocolError);
+
+                        return await MemoryImage.CopyFromStreamAsync(response)
+                            .ConfigureAwait(false);
                     }
-                },
-                token, TaskCreationOptions.None, TaskScheduler.Default); // 明示しないと TaskScheduler.Current になり UI スレッド上で実行されてしまう
+                }, cancellationToken);
             }
         }
     }

@@ -22,10 +22,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Data;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Windows.Forms;
 using System.Text.RegularExpressions;
@@ -39,14 +41,9 @@ namespace OpenTween
     {
         protected internal List<OTPictureBox> pictureBox = new List<OTPictureBox>();
 
-        private Task task = null;
-        private CancellationTokenSource cancelTokenSource;
-
         public event EventHandler ThumbnailLoading;
         public event EventHandler<ThumbnailDoubleClickEventArgs> ThumbnailDoubleClick;
         public event EventHandler<ThumbnailImageSearchEventArgs> ThumbnailImageSearchClick;
-
-        private object uiLockObj = new object();
 
         public ThumbnailInfo Thumbnail
         {
@@ -60,104 +57,57 @@ namespace OpenTween
 
         public Task ShowThumbnailAsync(PostClass post)
         {
-            this.CancelAsync();
+            return this.ShowThumbnailAsync(post, CancellationToken.None);
+        }
+
+        public async Task ShowThumbnailAsync(PostClass post, CancellationToken cancelToken)
+        {
+            var loadTasks = new List<Task>();
 
             this.scrollBar.Enabled = false;
 
-            this.cancelTokenSource = new CancellationTokenSource();
-            var cancelToken = this.cancelTokenSource.Token;
-
-            var uiScheduler = TaskScheduler.FromCurrentSynchronizationContext();
-
-            this.task = Task.Factory.StartNew(() => this.GetThumbailInfo(post), cancelToken, TaskCreationOptions.None, TaskScheduler.Default)
-                .ContinueWith(t => /* await使いたい */
-                {
-                    var thumbnails = t.Result;
-
-                    lock (this.uiLockObj)
-                    {
-                        this.SetThumbnailCount(thumbnails.Count);
-                        if (thumbnails.Count == 0) return;
-
-                        for (int i = 0; i < thumbnails.Count; i++)
-                        {
-                            var thumb = thumbnails[i];
-                            var picbox = this.pictureBox[i];
-
-                            picbox.Tag = thumb;
-                            picbox.ContextMenu = CreateContextMenu(thumb);
-
-                            picbox.ShowInitialImage();
-
-                            thumb.LoadThumbnailImageAsync(cancelToken)
-                                .ContinueWith(t2 =>
-                                {
-                                    if (t2.IsFaulted)
-                                        t2.Exception.Flatten().Handle(x => x is WebException || x is InvalidImageException || x is TaskCanceledException);
-
-                                    if (t2.IsFaulted || t2.IsCanceled)
-                                    {
-                                        picbox.ShowErrorImage();
-                                        return;
-                                    }
-
-                                    picbox.Image = t2.Result;
-                                },
-                                CancellationToken.None, TaskContinuationOptions.AttachedToParent, uiScheduler);
-
-                            var tooltipText = thumb.TooltipText;
-                            if (!string.IsNullOrEmpty(tooltipText))
-                            {
-                                this.toolTip.SetToolTip(picbox, tooltipText);
-                            }
-
-                            cancelToken.ThrowIfCancellationRequested();
-                        }
-
-                        if (thumbnails.Count > 1)
-                            this.scrollBar.Enabled = true;
-                    }
-
-                    if (this.ThumbnailLoading != null)
-                        this.ThumbnailLoading(this, EventArgs.Empty);
-                },
-                cancelToken,
-                TaskContinuationOptions.OnlyOnRanToCompletion,
-                uiScheduler);
-
-            return this.task;
-        }
-
-        private ContextMenu CreateContextMenu(ThumbnailInfo thumb)
-        {
-            var contextMenu = new ContextMenu();
-            contextMenu.MenuItems.Add(CreateImageSearchMenuItem(thumb));
-            return contextMenu;
-        }
-
-        private MenuItem CreateImageSearchMenuItem(ThumbnailInfo thumb)
-        {
-            var item = new MenuItem();
-            item.Text = Properties.Resources.SearchSimilarImageText;
-            var search_targe_url = thumb.FullSizeImageUrl ?? thumb.ThumbnailUrl ?? null;
-
-            if (search_targe_url != null)
+            if (post.Media.Count == 0 && post.PostGeo.Lat == 0 && post.PostGeo.Lng == 0)
             {
-                item.Click += (sender, e) =>
-                {
-                    string uri = GetImageSearchUri(search_targe_url);
-                    if (this.ThumbnailImageSearchClick != null)
-                    {
-                        this.ThumbnailImageSearchClick(this, new ThumbnailImageSearchEventArgs(uri));
-                    }
-                };
-            }
-            else
-            {
-                item.Enabled = false;
+                this.SetThumbnailCount(0);
+                return;
             }
 
-            return item;
+            var thumbnails = (await this.GetThumbailInfoAsync(post, cancelToken))
+                .ToArray();
+
+            cancelToken.ThrowIfCancellationRequested();
+
+            this.SetThumbnailCount(thumbnails.Length);
+            if (thumbnails.Length == 0)
+                return;
+
+            for (int i = 0; i < thumbnails.Length; i++)
+            {
+                var thumb = thumbnails[i];
+                var picbox = this.pictureBox[i];
+
+                picbox.Tag = thumb;
+                picbox.ContextMenuStrip = this.contextMenuStrip;
+
+                var loadTask = picbox.SetImageFromTask(() => thumb.LoadThumbnailImageAsync(cancelToken));
+                loadTasks.Add(loadTask);
+
+                var tooltipText = thumb.TooltipText;
+                if (!string.IsNullOrEmpty(tooltipText))
+                {
+                    this.toolTip.SetToolTip(picbox, tooltipText);
+                }
+
+                cancelToken.ThrowIfCancellationRequested();
+            }
+
+            if (thumbnails.Length > 1)
+                this.scrollBar.Enabled = true;
+
+            if (this.ThumbnailLoading != null)
+                this.ThumbnailLoading(this, EventArgs.Empty);
+
+            await Task.WhenAll(loadTasks).ConfigureAwait(false);
         }
 
         private string GetImageSearchUri(string image_uri)
@@ -165,16 +115,9 @@ namespace OpenTween
             return @"https://www.google.com/searchbyimage?image_url=" + Uri.EscapeDataString(image_uri);
         }
 
-        protected virtual List<ThumbnailInfo> GetThumbailInfo(PostClass post)
+        protected virtual Task<IEnumerable<ThumbnailInfo>> GetThumbailInfoAsync(PostClass post, CancellationToken token)
         {
-            return ThumbnailGenerator.GetThumbnails(post);
-        }
-
-        public void CancelAsync()
-        {
-            if (this.task == null || this.task.IsCompleted) return;
-
-            this.cancelTokenSource.Cancel();
+            return ThumbnailGenerator.GetThumbnailsAsync(post, token);
         }
 
         /// <summary>
@@ -183,38 +126,41 @@ namespace OpenTween
         /// <param name="count">表示するサムネイルの数</param>
         protected void SetThumbnailCount(int count)
         {
-            this.SuspendLayout();
+            if (count == 0 && this.pictureBox.Count == 0)
+                return;
 
-            this.panelPictureBox.Controls.Clear();
-            foreach (var picbox in this.pictureBox)
+            using (ControlTransaction.Layout(this.panelPictureBox, false))
             {
-                var memoryImage = picbox.Image;
-                var contextMenu = picbox.ContextMenu;
-                picbox.Dispose();
+                this.panelPictureBox.Controls.Clear();
+                foreach (var picbox in this.pictureBox)
+                {
+                    var memoryImage = picbox.Image;
+                    picbox.Dispose();
 
-                if (memoryImage != null)
-                    memoryImage.Dispose();
-                if (contextMenu != null)
-                    contextMenu.Dispose();
+                    if (memoryImage != null)
+                        memoryImage.Dispose();
+
+                    // メモリリーク対策 (http://stackoverflow.com/questions/2792427#2793714)
+                    picbox.ContextMenuStrip = null;
+                }
+                this.pictureBox.Clear();
+
+                this.scrollBar.Maximum = (count > 0) ? count - 1 : 0;
+                this.scrollBar.Value = 0;
+
+                for (int i = 0; i < count; i++)
+                {
+                    var picbox = CreatePictureBox("pictureBox" + i);
+                    picbox.Visible = (i == 0);
+                    picbox.DoubleClick += this.pictureBox_DoubleClick;
+
+                    this.panelPictureBox.Controls.Add(picbox);
+                    this.pictureBox.Add(picbox);
+                }
             }
-            this.pictureBox.Clear();
-
-            this.scrollBar.Maximum = (count > 0) ? count - 1 : 0;
-            this.scrollBar.Value = 0;
-
-            for (int i = 0; i < count; i++)
-            {
-                var picbox = CreatePictureBox("pictureBox" + i);
-                picbox.Visible = (i == 0);
-                picbox.DoubleClick += this.pictureBox_DoubleClick;
-
-                this.panelPictureBox.Controls.Add(picbox);
-                this.pictureBox.Add(picbox);
-            }
-
-            this.ResumeLayout(false);
         }
 
+        [SuppressMessage("Microsoft.Reliability", "CA2000:DisposeObjectsBeforeLosingScope")]
         protected virtual OTPictureBox CreatePictureBox(string name)
         {
             return new OTPictureBox()
@@ -228,16 +174,6 @@ namespace OpenTween
 
         public void ScrollUp()
         {
-            var newval = this.scrollBar.Value + this.scrollBar.SmallChange;
-
-            if (newval > this.scrollBar.Maximum)
-                newval = this.scrollBar.Maximum;
-
-            this.scrollBar.Value = newval;
-        }
-
-        public void ScrollDown()
-        {
             var newval = this.scrollBar.Value - this.scrollBar.SmallChange;
 
             if (newval < this.scrollBar.Minimum)
@@ -246,17 +182,32 @@ namespace OpenTween
             this.scrollBar.Value = newval;
         }
 
+        public void ScrollDown()
+        {
+            var newval = this.scrollBar.Value + this.scrollBar.SmallChange;
+
+            if (newval > this.scrollBar.Maximum)
+                newval = this.scrollBar.Maximum;
+
+            this.scrollBar.Value = newval;
+        }
+
+        protected override void ScaleControl(SizeF factor, BoundsSpecified specified)
+        {
+            base.ScaleControl(factor, specified);
+            OTBaseForm.ScaleChildControl(this.scrollBar, factor);
+        }
+
         private void scrollBar_ValueChanged(object sender, EventArgs e)
         {
-            this.SuspendLayout();
-
-            var value = this.scrollBar.Value;
-            for (var i = 0; i < this.pictureBox.Count; i++)
+            using (ControlTransaction.Layout(this, false))
             {
-                this.pictureBox[i].Visible = (i == value);
+                var value = this.scrollBar.Value;
+                for (var i = 0; i < this.pictureBox.Count; i++)
+                {
+                    this.pictureBox[i].Visible = (i == value);
+                }
             }
-
-            this.ResumeLayout(false);
         }
 
         private void pictureBox_DoubleClick(object sender, EventArgs e)
@@ -269,6 +220,32 @@ namespace OpenTween
             {
                 this.ThumbnailDoubleClick(this, new ThumbnailDoubleClickEventArgs(thumb));
             }
+        }
+
+        private void contextMenuStrip_Opening(object sender, CancelEventArgs e)
+        {
+            var picbox = (OTPictureBox)this.contextMenuStrip.SourceControl;
+            var thumb = (ThumbnailInfo)picbox.Tag;
+
+            var searchTargetUri = thumb.FullSizeImageUrl ?? thumb.ThumbnailUrl ?? null;
+            if (searchTargetUri != null)
+            {
+                this.searchSimilarImageMenuItem.Enabled = true;
+                this.searchSimilarImageMenuItem.Tag = searchTargetUri;
+            }
+            else
+            {
+                this.searchSimilarImageMenuItem.Enabled = false;
+            }
+        }
+
+        private void searchSimilarImageMenuItem_Click(object sender, EventArgs e)
+        {
+            var searchTargetUri = (string)this.searchSimilarImageMenuItem.Tag;
+            var searchUri = this.GetImageSearchUri(searchTargetUri);
+
+            if (this.ThumbnailImageSearchClick != null)
+                this.ThumbnailImageSearchClick(this, new ThumbnailImageSearchEventArgs(searchUri));
         }
     }
 

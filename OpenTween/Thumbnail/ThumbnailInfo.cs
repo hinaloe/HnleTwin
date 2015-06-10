@@ -22,34 +22,70 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using OpenTween.Connection;
 
 namespace OpenTween.Thumbnail
 {
-    public class ThumbnailInfo
+    public class ThumbnailInfo : IEquatable<ThumbnailInfo>
     {
         public string ImageUrl { get; set; }
         public string ThumbnailUrl { get; set; }
         public string TooltipText { get; set; }
         public string FullSizeImageUrl { get; set; }
 
+        public bool IsPlayable
+        {
+            get { return _IsPlayable; }
+            set { _IsPlayable = value; }
+        }
+        private bool _IsPlayable = false;
+
         public Task<MemoryImage> LoadThumbnailImageAsync()
         {
             return this.LoadThumbnailImageAsync(CancellationToken.None);
         }
 
-        public virtual Task<MemoryImage> LoadThumbnailImageAsync(CancellationToken token)
+        public Task<MemoryImage> LoadThumbnailImageAsync(CancellationToken cancellationToken)
         {
-            var client = new OTWebClient();
+            return this.LoadThumbnailImageAsync(Networking.Http, cancellationToken);
+        }
 
-            var task = client.DownloadDataAsync(new Uri(this.ThumbnailUrl), token)
-                .ContinueWith(t => MemoryImage.CopyFromBytes(t.Result), TaskScheduler.Default);
+        public async virtual Task<MemoryImage> LoadThumbnailImageAsync(HttpClient http, CancellationToken cancellationToken)
+        {
+            using (var response = await http.GetAsync(this.ThumbnailUrl, cancellationToken).ConfigureAwait(false))
+            {
+                response.EnsureSuccessStatusCode();
 
-            task.ContinueWith(_ => client.Dispose(), TaskScheduler.Default);
+                using (var imageStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+                {
+                    return await MemoryImage.CopyFromStreamAsync(imageStream)
+                        .ConfigureAwait(false);
+                }
+            }
+        }
 
-            return task;
+        public override bool Equals(object obj)
+        {
+            return this.Equals(obj as ThumbnailInfo);
+        }
+
+        public bool Equals(ThumbnailInfo other)
+        {
+            return other != null &&
+                other.ImageUrl == this.ImageUrl &&
+                other.ThumbnailUrl == this.ThumbnailUrl &&
+                other.TooltipText == this.TooltipText &&
+                other.FullSizeImageUrl == this.FullSizeImageUrl &&
+                other.IsPlayable == this.IsPlayable;
+        }
+
+        public override int GetHashCode()
+        {
+            return this.ImageUrl.GetHashCode() ^ this.ThumbnailUrl.GetHashCode();
         }
     }
 }

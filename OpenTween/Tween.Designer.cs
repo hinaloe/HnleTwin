@@ -7,19 +7,6 @@
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        /// 使用中のリソースをすべてクリーンアップします。
-        /// </summary>
-        /// <param name="disposing">マネージ リソースが破棄される場合 true、破棄されない場合は false です。</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
         #region Windows フォーム デザイナーで生成されたコード
 
         /// <summary>
@@ -34,6 +21,7 @@
             this.StatusStrip1 = new System.Windows.Forms.StatusStrip();
             this.StatusLabelUrl = new System.Windows.Forms.ToolStripStatusLabel();
             this.StatusLabel = new OpenTween.OpenTweenCustomControl.ToolStripLabelHistory();
+            this.toolStripApiGauge = new OpenTween.ToolStripAPIGauge();
             this.HashStripSplitButton = new System.Windows.Forms.ToolStripSplitButton();
             this.ContextMenuPostMode = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.ToolStripMenuItemUrlMultibyteSplit = new System.Windows.Forms.ToolStripMenuItem();
@@ -47,7 +35,7 @@
             this.ToolStripSeparator8 = new System.Windows.Forms.ToolStripSeparator();
             this.HashToggleMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HashManageMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.SplitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.SplitContainer1 = new OpenTween.OTSplitContainer();
             this.TimelinePanel = new System.Windows.Forms.Panel();
             this.ListTab = new System.Windows.Forms.TabControl();
             this.ContextMenuTabProperty = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -65,15 +53,7 @@
             this.ToolStripSeparator11 = new System.Windows.Forms.ToolStripSeparator();
             this.DeleteTabMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TabImage = new System.Windows.Forms.ImageList(this.components);
-            this.ImageSelectionPanel = new System.Windows.Forms.Panel();
-            this.ImageSelectedPicture = new OpenTween.OpenTweenCustomControl.PictureBoxEx();
-            this.ImagePathPanel = new System.Windows.Forms.Panel();
-            this.ImagefilePathText = new System.Windows.Forms.TextBox();
-            this.FilePickButton = new System.Windows.Forms.Button();
-            this.Label2 = new System.Windows.Forms.Label();
-            this.ImageServiceCombo = new System.Windows.Forms.ComboBox();
-            this.ImageCancelButton = new System.Windows.Forms.Button();
-            this.Label1 = new System.Windows.Forms.Label();
+            this.ImageSelector = new OpenTween.MediaSelector();
             this.ProfilePanel = new System.Windows.Forms.Panel();
             this.SplitContainer3 = new System.Windows.Forms.SplitContainer();
             this.SplitContainer2 = new System.Windows.Forms.SplitContainer();
@@ -185,6 +165,7 @@
             this.CreateRuleOpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CreateTabRuleOpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CreateIdRuleOpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.CreateSourceRuleOpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ListManageMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ToolStripSeparator26 = new System.Windows.Forms.ToolStripSeparator();
             this.ChangeReadOpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -275,6 +256,7 @@
             this.OpenUserSpecifiedUrlMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.DeleteStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ToolStripMenuItem7 = new System.Windows.Forms.ToolStripMenuItem();
+            this.SourceRuleMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.RefreshStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.NotifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.ContextMenuFile = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -314,6 +296,15 @@
             this.ToolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.TimerRefreshIcon = new System.Windows.Forms.Timer(this.components);
             this.PostStateImageList = new System.Windows.Forms.ImageList(this.components);
+            this.ContextMenuColumnHeader = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.IconSizeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.IconSizeNoneToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.IconSize16ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.IconSize24ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.IconSize48ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.IconSize48_2ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ToolStripSeparator45 = new System.Windows.Forms.ToolStripSeparator();
+            this.LockListSortOrderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ToolStripContainer1.BottomToolStripPanel.SuspendLayout();
             this.ToolStripContainer1.ContentPanel.SuspendLayout();
             this.ToolStripContainer1.TopToolStripPanel.SuspendLayout();
@@ -326,9 +317,6 @@
             this.SplitContainer1.SuspendLayout();
             this.TimelinePanel.SuspendLayout();
             this.ContextMenuTabProperty.SuspendLayout();
-            this.ImageSelectionPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.ImageSelectedPicture)).BeginInit();
-            this.ImagePathPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.SplitContainer3)).BeginInit();
             this.SplitContainer3.Panel1.SuspendLayout();
             this.SplitContainer3.Panel2.SuspendLayout();
@@ -345,6 +333,7 @@
             this.MenuStrip1.SuspendLayout();
             this.ContextMenuFile.SuspendLayout();
             this.ContextMenuOperate.SuspendLayout();
+            this.ContextMenuColumnHeader.SuspendLayout();
             this.SuspendLayout();
             // 
             // ToolStripContainer1
@@ -373,6 +362,7 @@
             this.StatusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.StatusLabelUrl,
             this.StatusLabel,
+            this.toolStripApiGauge,
             this.HashStripSplitButton});
             this.StatusStrip1.Name = "StatusStrip1";
             this.StatusStrip1.ShowItemToolTips = true;
@@ -395,6 +385,15 @@
             this.StatusLabel.Name = "StatusLabel";
             resources.ApplyResources(this.StatusLabel, "StatusLabel");
             this.StatusLabel.DoubleClick += new System.EventHandler(this.StatusLabel_DoubleClick);
+            // 
+            // toolStripApiGauge
+            // 
+            this.toolStripApiGauge.ApiEndpoint = null;
+            this.toolStripApiGauge.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Right;
+            this.toolStripApiGauge.DoubleClickEnabled = true;
+            this.toolStripApiGauge.Name = "toolStripApiGauge";
+            resources.ApplyResources(this.toolStripApiGauge, "toolStripApiGauge");
+            this.toolStripApiGauge.DoubleClick += new System.EventHandler(this.ApiUsageInfoMenuItem_Click);
             // 
             // HashStripSplitButton
             // 
@@ -508,7 +507,7 @@
             // SplitContainer1.Panel1
             // 
             this.SplitContainer1.Panel1.Controls.Add(this.TimelinePanel);
-            this.SplitContainer1.Panel1.Controls.Add(this.ImageSelectionPanel);
+            this.SplitContainer1.Panel1.Controls.Add(this.ImageSelector);
             this.SplitContainer1.Panel1.Controls.Add(this.ProfilePanel);
             // 
             // SplitContainer1.Panel2
@@ -651,79 +650,17 @@
             resources.ApplyResources(this.TabImage, "TabImage");
             this.TabImage.TransparentColor = System.Drawing.Color.Transparent;
             // 
-            // ImageSelectionPanel
+
+            // ImageSelector
             // 
-            resources.ApplyResources(this.ImageSelectionPanel, "ImageSelectionPanel");
-            this.ImageSelectionPanel.Controls.Add(this.ImageSelectedPicture);
-            this.ImageSelectionPanel.Controls.Add(this.ImagePathPanel);
-            this.ImageSelectionPanel.Name = "ImageSelectionPanel";
-            this.ImageSelectionPanel.VisibleChanged += new System.EventHandler(this.ImageSelectionPanel_VisibleChanged);
-            // 
-            // ImageSelectedPicture
-            // 
-            resources.ApplyResources(this.ImageSelectedPicture, "ImageSelectedPicture");
-            this.ImageSelectedPicture.Name = "ImageSelectedPicture";
-            this.ImageSelectedPicture.TabStop = false;
-            // 
-            // ImagePathPanel
-            // 
-            this.ImagePathPanel.Controls.Add(this.ImagefilePathText);
-            this.ImagePathPanel.Controls.Add(this.FilePickButton);
-            this.ImagePathPanel.Controls.Add(this.Label2);
-            this.ImagePathPanel.Controls.Add(this.ImageServiceCombo);
-            this.ImagePathPanel.Controls.Add(this.ImageCancelButton);
-            this.ImagePathPanel.Controls.Add(this.Label1);
-            resources.ApplyResources(this.ImagePathPanel, "ImagePathPanel");
-            this.ImagePathPanel.Name = "ImagePathPanel";
-            // 
-            // ImagefilePathText
-            // 
-            resources.ApplyResources(this.ImagefilePathText, "ImagefilePathText");
-            this.ImagefilePathText.Name = "ImagefilePathText";
-            this.ImagefilePathText.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ImageSelection_KeyDown);
-            this.ImagefilePathText.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.ImageSelection_KeyPress);
-            this.ImagefilePathText.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.ImageSelection_PreviewKeyDown);
-            this.ImagefilePathText.Validating += new System.ComponentModel.CancelEventHandler(this.ImagefilePathText_Validating);
-            // 
-            // FilePickButton
-            // 
-            resources.ApplyResources(this.FilePickButton, "FilePickButton");
-            this.FilePickButton.Name = "FilePickButton";
-            this.FilePickButton.UseVisualStyleBackColor = true;
-            this.FilePickButton.Click += new System.EventHandler(this.FilePickButton_Click);
-            this.FilePickButton.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ImageSelection_KeyDown);
-            this.FilePickButton.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.ImageSelection_KeyPress);
-            this.FilePickButton.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.ImageSelection_PreviewKeyDown);
-            // 
-            // Label2
-            // 
-            resources.ApplyResources(this.Label2, "Label2");
-            this.Label2.Name = "Label2";
-            // 
-            // ImageServiceCombo
-            // 
-            resources.ApplyResources(this.ImageServiceCombo, "ImageServiceCombo");
-            this.ImageServiceCombo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.ImageServiceCombo.FormattingEnabled = true;
-            this.ImageServiceCombo.Items.AddRange(new object[] {
-            resources.GetString("ImageServiceCombo.Items")});
-            this.ImageServiceCombo.Name = "ImageServiceCombo";
-            this.ImageServiceCombo.SelectedIndexChanged += new System.EventHandler(this.ImageServiceCombo_SelectedIndexChanged);
-            this.ImageServiceCombo.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ImageSelection_KeyDown);
-            this.ImageServiceCombo.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.ImageSelection_KeyPress);
-            this.ImageServiceCombo.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.ImageSelection_PreviewKeyDown);
-            // 
-            // ImageCancelButton
-            // 
-            resources.ApplyResources(this.ImageCancelButton, "ImageCancelButton");
-            this.ImageCancelButton.Name = "ImageCancelButton";
-            this.ImageCancelButton.UseVisualStyleBackColor = true;
-            this.ImageCancelButton.Click += new System.EventHandler(this.ImageCancelButton_Click);
-            // 
-            // Label1
-            // 
-            resources.ApplyResources(this.Label1, "Label1");
-            this.Label1.Name = "Label1";
+            resources.ApplyResources(this.ImageSelector, "ImageSelector");
+            this.ImageSelector.Name = "ImageSelector";
+            this.ImageSelector.BeginSelecting += new System.EventHandler(this.ImageSelector_BeginSelecting);
+            this.ImageSelector.EndSelecting += new System.EventHandler(this.ImageSelector_EndSelecting);
+            this.ImageSelector.FilePickDialogOpening += new System.EventHandler(this.ImageSelector_FilePickDialogOpening);
+            this.ImageSelector.FilePickDialogClosed += new System.EventHandler(this.ImageSelector_FilePickDialogClosed);
+            this.ImageSelector.SelectedServiceChanged += new System.EventHandler(this.ImageSelector_SelectedServiceChanged);
+            this.ImageSelector.VisibleChanged += new System.EventHandler(this.ImageSelector_VisibleChanged);
             // 
             // ProfilePanel
             // 
@@ -733,7 +670,6 @@
             // SplitContainer3
             // 
             resources.ApplyResources(this.SplitContainer3, "SplitContainer3");
-            this.SplitContainer3.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
             this.SplitContainer3.Name = "SplitContainer3";
             // 
             // SplitContainer3.Panel1
@@ -1146,6 +1082,7 @@
             // 
             resources.ApplyResources(this.tweetThumbnail1, "tweetThumbnail1");
             this.tweetThumbnail1.Name = "tweetThumbnail1";
+            this.tweetThumbnail1.TabStop = false;
             this.tweetThumbnail1.ThumbnailLoading += new System.EventHandler(this.tweetThumbnail1_ThumbnailLoading);
             this.tweetThumbnail1.ThumbnailDoubleClick += new System.EventHandler<OpenTween.ThumbnailDoubleClickEventArgs>(this.tweetThumbnail1_ThumbnailDoubleClick);
             this.tweetThumbnail1.ThumbnailImageSearchClick += new System.EventHandler<OpenTween.ThumbnailImageSearchEventArgs>(this.tweetThumbnail1_ThumbnailImageSearchClick);
@@ -1537,7 +1474,8 @@
             // 
             this.CreateRuleOpMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.CreateTabRuleOpMenuItem,
-            this.CreateIdRuleOpMenuItem});
+            this.CreateIdRuleOpMenuItem,
+            this.CreateSourceRuleOpMenuItem});
             this.CreateRuleOpMenuItem.Name = "CreateRuleOpMenuItem";
             resources.ApplyResources(this.CreateRuleOpMenuItem, "CreateRuleOpMenuItem");
             // 
@@ -1552,6 +1490,12 @@
             this.CreateIdRuleOpMenuItem.Name = "CreateIdRuleOpMenuItem";
             resources.ApplyResources(this.CreateIdRuleOpMenuItem, "CreateIdRuleOpMenuItem");
             this.CreateIdRuleOpMenuItem.Click += new System.EventHandler(this.IDRuleMenuItem_Click);
+            // 
+            // CreateSourceRuleOpMenuItem
+            // 
+            this.CreateSourceRuleOpMenuItem.Name = "CreateSourceRuleOpMenuItem";
+            resources.ApplyResources(this.CreateSourceRuleOpMenuItem, "CreateSourceRuleOpMenuItem");
+            this.CreateSourceRuleOpMenuItem.Click += new System.EventHandler(this.SourceRuleMenuItem_Click);
             // 
             // ListManageMenuItem
             // 
@@ -2149,9 +2093,16 @@
             // 
             this.ToolStripMenuItem7.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.TabMenuItem,
-            this.IDRuleMenuItem});
+            this.IDRuleMenuItem,
+            this.SourceRuleMenuItem});
             this.ToolStripMenuItem7.Name = "ToolStripMenuItem7";
             resources.ApplyResources(this.ToolStripMenuItem7, "ToolStripMenuItem7");
+            // 
+            // SourceRuleMenuItem
+            // 
+            this.SourceRuleMenuItem.Name = "SourceRuleMenuItem";
+            resources.ApplyResources(this.SourceRuleMenuItem, "SourceRuleMenuItem");
+            this.SourceRuleMenuItem.Click += new System.EventHandler(this.SourceRuleMenuItem_Click);
             // 
             // RefreshStripMenuItem
             // 
@@ -2435,6 +2386,69 @@
             this.PostStateImageList.Images.SetKeyName(13, "S13.ico");
             this.PostStateImageList.Images.SetKeyName(14, "S14.ico");
             // 
+            // ContextMenuColumnHeader
+            // 
+            this.ContextMenuColumnHeader.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.IconSizeToolStripMenuItem,
+            this.ToolStripSeparator45,
+            this.LockListSortOrderToolStripMenuItem});
+            this.ContextMenuColumnHeader.Name = "ContextMenuColumnHeader";
+            resources.ApplyResources(this.ContextMenuColumnHeader, "ContextMenuColumnHeader");
+            this.ContextMenuColumnHeader.Opening += new System.ComponentModel.CancelEventHandler(this.ContextMenuColumnHeader_Opening);
+            // 
+            // IconSizeToolStripMenuItem
+            // 
+            this.IconSizeToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.IconSizeNoneToolStripMenuItem,
+            this.IconSize16ToolStripMenuItem,
+            this.IconSize24ToolStripMenuItem,
+            this.IconSize48ToolStripMenuItem,
+            this.IconSize48_2ToolStripMenuItem});
+            this.IconSizeToolStripMenuItem.Name = "IconSizeToolStripMenuItem";
+            resources.ApplyResources(this.IconSizeToolStripMenuItem, "IconSizeToolStripMenuItem");
+            // 
+            // IconSizeNoneToolStripMenuItem
+            // 
+            this.IconSizeNoneToolStripMenuItem.Name = "IconSizeNoneToolStripMenuItem";
+            resources.ApplyResources(this.IconSizeNoneToolStripMenuItem, "IconSizeNoneToolStripMenuItem");
+            this.IconSizeNoneToolStripMenuItem.Click += new System.EventHandler(this.IconSizeNoneToolStripMenuItem_Click);
+            // 
+            // IconSize16ToolStripMenuItem
+            // 
+            this.IconSize16ToolStripMenuItem.Name = "IconSize16ToolStripMenuItem";
+            resources.ApplyResources(this.IconSize16ToolStripMenuItem, "IconSize16ToolStripMenuItem");
+            this.IconSize16ToolStripMenuItem.Click += new System.EventHandler(this.IconSize16ToolStripMenuItem_Click);
+            // 
+            // IconSize24ToolStripMenuItem
+            // 
+            this.IconSize24ToolStripMenuItem.Name = "IconSize24ToolStripMenuItem";
+            resources.ApplyResources(this.IconSize24ToolStripMenuItem, "IconSize24ToolStripMenuItem");
+            this.IconSize24ToolStripMenuItem.Click += new System.EventHandler(this.IconSize24ToolStripMenuItem_Click);
+            // 
+            // IconSize48ToolStripMenuItem
+            // 
+            this.IconSize48ToolStripMenuItem.Name = "IconSize48ToolStripMenuItem";
+            resources.ApplyResources(this.IconSize48ToolStripMenuItem, "IconSize48ToolStripMenuItem");
+            this.IconSize48ToolStripMenuItem.Click += new System.EventHandler(this.IconSize48ToolStripMenuItem_Click);
+            // 
+            // IconSize48_2ToolStripMenuItem
+            // 
+            this.IconSize48_2ToolStripMenuItem.Name = "IconSize48_2ToolStripMenuItem";
+            resources.ApplyResources(this.IconSize48_2ToolStripMenuItem, "IconSize48_2ToolStripMenuItem");
+            this.IconSize48_2ToolStripMenuItem.Click += new System.EventHandler(this.IconSize48_2ToolStripMenuItem_Click);
+            // 
+            // ToolStripSeparator45
+            // 
+            this.ToolStripSeparator45.Name = "ToolStripSeparator45";
+            resources.ApplyResources(this.ToolStripSeparator45, "ToolStripSeparator45");
+            // 
+            // LockListSortOrderToolStripMenuItem
+            // 
+            this.LockListSortOrderToolStripMenuItem.CheckOnClick = true;
+            this.LockListSortOrderToolStripMenuItem.Name = "LockListSortOrderToolStripMenuItem";
+            resources.ApplyResources(this.LockListSortOrderToolStripMenuItem, "LockListSortOrderToolStripMenuItem");
+            this.LockListSortOrderToolStripMenuItem.Click += new System.EventHandler(this.LockListSortToolStripMenuItem_Click);
+            // 
             // TweenMain
             // 
             this.AllowDrop = true;
@@ -2450,9 +2464,9 @@
             this.ClientSizeChanged += new System.EventHandler(this.TweenMain_ClientSizeChanged);
             this.LocationChanged += new System.EventHandler(this.TweenMain_LocationChanged);
             this.DragDrop += new System.Windows.Forms.DragEventHandler(this.TweenMain_DragDrop);
+            this.DragEnter += new System.Windows.Forms.DragEventHandler(this.TweenMain_DragEnter);
             this.DragOver += new System.Windows.Forms.DragEventHandler(this.TweenMain_DragOver);
             this.Resize += new System.EventHandler(this.TweenMain_Resize);
-            this.Disposed += new System.EventHandler(this.TweenMain_Disposed);
             this.ToolStripContainer1.BottomToolStripPanel.ResumeLayout(false);
             this.ToolStripContainer1.BottomToolStripPanel.PerformLayout();
             this.ToolStripContainer1.ContentPanel.ResumeLayout(false);
@@ -2469,10 +2483,6 @@
             this.SplitContainer1.ResumeLayout(false);
             this.TimelinePanel.ResumeLayout(false);
             this.ContextMenuTabProperty.ResumeLayout(false);
-            this.ImageSelectionPanel.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.ImageSelectedPicture)).EndInit();
-            this.ImagePathPanel.ResumeLayout(false);
-            this.ImagePathPanel.PerformLayout();
             this.SplitContainer3.Panel1.ResumeLayout(false);
             this.SplitContainer3.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.SplitContainer3)).EndInit();
@@ -2492,6 +2502,7 @@
             this.MenuStrip1.PerformLayout();
             this.ContextMenuFile.ResumeLayout(false);
             this.ContextMenuOperate.ResumeLayout(false);
+            this.ContextMenuColumnHeader.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -2516,7 +2527,7 @@
         internal System.Windows.Forms.ToolStripSeparator ToolStripSeparator8;
         internal System.Windows.Forms.ToolStripMenuItem HashToggleMenuItem;
         internal System.Windows.Forms.ToolStripMenuItem HashManageMenuItem;
-        internal System.Windows.Forms.SplitContainer SplitContainer1;
+        internal OTSplitContainer SplitContainer1;
         internal System.Windows.Forms.Panel TimelinePanel;
         internal System.Windows.Forms.TabControl ListTab;
         internal System.Windows.Forms.ContextMenuStrip ContextMenuTabProperty;
@@ -2533,15 +2544,7 @@
         internal System.Windows.Forms.ToolStripSeparator ToolStripSeparator11;
         internal System.Windows.Forms.ToolStripMenuItem DeleteTabMenuItem;
         internal System.Windows.Forms.ImageList TabImage;
-        internal System.Windows.Forms.Panel ImageSelectionPanel;
-        internal OpenTweenCustomControl.PictureBoxEx ImageSelectedPicture;
-        internal System.Windows.Forms.Panel ImagePathPanel;
-        internal System.Windows.Forms.TextBox ImagefilePathText;
-        internal System.Windows.Forms.Button FilePickButton;
-        internal System.Windows.Forms.Label Label2;
-        internal System.Windows.Forms.ComboBox ImageServiceCombo;
-        internal System.Windows.Forms.Button ImageCancelButton;
-        internal System.Windows.Forms.Label Label1;
+        internal MediaSelector ImageSelector;
         internal System.Windows.Forms.Panel ProfilePanel;
         internal System.Windows.Forms.SplitContainer SplitContainer3;
         internal System.Windows.Forms.SplitContainer SplitContainer2;
@@ -2782,6 +2785,18 @@
         private System.Windows.Forms.ToolStripMenuItem ReloadIconToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator44;
         private System.Windows.Forms.ToolStripMenuItem OpenURLFileMenuItem;
+        internal System.Windows.Forms.ContextMenuStrip ContextMenuColumnHeader;
+        internal System.Windows.Forms.ToolStripMenuItem IconSizeToolStripMenuItem;
+        internal System.Windows.Forms.ToolStripMenuItem IconSizeNoneToolStripMenuItem;
+        internal System.Windows.Forms.ToolStripMenuItem IconSize16ToolStripMenuItem;
+        internal System.Windows.Forms.ToolStripMenuItem IconSize24ToolStripMenuItem;
+        internal System.Windows.Forms.ToolStripMenuItem IconSize48ToolStripMenuItem;
+        internal System.Windows.Forms.ToolStripMenuItem IconSize48_2ToolStripMenuItem;
+        internal System.Windows.Forms.ToolStripSeparator ToolStripSeparator45;
+        internal System.Windows.Forms.ToolStripMenuItem LockListSortOrderToolStripMenuItem;
+        private ToolStripAPIGauge toolStripApiGauge;
+        private System.Windows.Forms.ToolStripMenuItem CreateSourceRuleOpMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem SourceRuleMenuItem;
 
     }
 }

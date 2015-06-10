@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>OpenTween</RootNamespace>
     <AssemblyName>HinaTwin</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile Condition="'$(OS)' == 'Windows_NT'">Client</TargetFrameworkProfile>
     <PublishUrl>publish\</PublishUrl>
@@ -38,6 +38,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <Prefer32Bit>false</Prefer32Bit>
+    <CodeAnalysisRuleSet>OpenTween.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -48,6 +50,7 @@
     <WarningLevel>4</WarningLevel>
     <GenerateSerializationAssemblies>On</GenerateSerializationAssemblies>
     <UseVSHostingProcess>false</UseVSHostingProcess>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>OpenTween.MyApplication</StartupObject>
@@ -64,7 +67,9 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -74,7 +79,28 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiInfoDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ApiInfoDialog.Designer.cs">
+      <DependentUpon>ApiInfoDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="Api\ApiLimit.cs" />
+    <Compile Include="Api\GeoJson.cs" />
+    <Compile Include="Api\TwitterConfiguration.cs" />
+    <Compile Include="Api\TwitterEntity.cs" />
+    <Compile Include="Api\TwitterError.cs" />
+    <Compile Include="Api\TwitterFriendship.cs" />
+    <Compile Include="Api\TwitterList.cs" />
+    <Compile Include="Api\TwitterPageable.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Api\TwitterPlace.cs" />
+    <Compile Include="Api\TwitterSearchResult.cs" />
+    <Compile Include="Api\TwitterStatus.cs" />
+    <Compile Include="Api\TwitterStreamEvent.cs" />
+    <Compile Include="Api\TwitterUploadMediaResult.cs" />
+    <Compile Include="Api\TwitterUser.cs" />
     <Compile Include="Api\TwitterApiAccessLevel.cs" />
     <Compile Include="Api\TwitterApiStatus.cs" />
     <Compile Include="ApplicationEvents.cs">
@@ -108,24 +134,31 @@
     <Compile Include="Connection\HttpConnectionOAuth.cs" />
     <Compile Include="Connection\HttpConnectionOAuthEcho.cs" />
     <Compile Include="Connection\IHttpConnection.cs" />
+    <Compile Include="Connection\IMediaUploadService.cs" />
     <Compile Include="Connection\imgly.cs" />
     <Compile Include="Connection\Imgur.cs" />
-    <Compile Include="Connection\IMultimediaShareService.cs" />
+    <Compile Include="Connection\Mobypicture.cs" />
+    <Compile Include="Connection\Networking.cs" />
     <Compile Include="Connection\TwipplePhoto.cs" />
+    <Compile Include="EmojiFormatter.cs" />
     <Compile Include="EventViewerDialog.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="EventViewerDialog.Designer.cs">
       <DependentUpon>EventViewerDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="Extensions.cs" />
     <Compile Include="FilterDialog.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="FilterDialog.Designer.cs">
       <DependentUpon>FilterDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="ImagePopup.xaml.cs">
-      <DependentUpon>ImagePopup.xaml</DependentUpon>
+    <Compile Include="WaitingDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WaitingDialog.Designer.cs">
+      <DependentUpon>WaitingDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="InputDialog.cs">
       <SubType>Form</SubType>
@@ -133,8 +166,20 @@
     <Compile Include="InputDialog.Designer.cs">
       <DependentUpon>InputDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="MediaSelector.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="MediaSelector.Designer.cs">
+      <DependentUpon>MediaSelector.cs</DependentUpon>
+    </Compile>
+    <Compile Include="NativeMethods.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="OTBaseForm.cs">
       <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="OTSplitContainer.cs">
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="PostFilterRule.cs" />
     <Compile Include="HashtagManage.cs">
@@ -156,10 +201,8 @@
     <Compile Include="ListManage.Designer.cs">
       <DependentUpon>ListManage.cs</DependentUpon>
     </Compile>
-    <Compile Include="Connection\TwitPic.cs" />
     <Compile Include="Connection\TwitterPhoto.cs" />
     <Compile Include="Connection\yfrog.cs" />
-    <Compile Include="DataModel.cs" />
     <Compile Include="DetailsListView.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -168,9 +211,7 @@
     <Compile Include="OTPictureBox.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="OTWebClient.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="RegexAsync.cs" />
     <Compile Include="Setting\Panel\ActionPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -274,17 +315,17 @@
     <Compile Include="TabsDialog.Designer.cs">
       <DependentUpon>TabsDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="Thumbnail\Services\Foursquare.cs" />
+    <Compile Include="Thumbnail\Services\FoursquareCheckin.cs" />
     <Compile Include="Thumbnail\Services\ImgAzyobuziNet.cs" />
     <Compile Include="Thumbnail\Services\IThumbnailService.cs" />
     <Compile Include="Thumbnail\Services\MetaThumbnailService.cs" />
     <Compile Include="Thumbnail\Services\Nicovideo.cs" />
-    <Compile Include="Thumbnail\Services\PhotoShareShortlink.cs" />
     <Compile Include="Thumbnail\Services\Pixiv.cs" />
     <Compile Include="Thumbnail\Services\SimpleThumbnailService.cs" />
     <Compile Include="Thumbnail\Services\Tinami.cs" />
     <Compile Include="Thumbnail\Services\TonTwitterCom.cs" />
     <Compile Include="Thumbnail\Services\Tumblr.cs" />
+    <Compile Include="Thumbnail\Services\TwitterComVideo.cs" />
     <Compile Include="Thumbnail\Services\ViaMe.cs" />
     <Compile Include="Thumbnail\Services\Vimeo.cs" />
     <Compile Include="Thumbnail\Services\Youtube.cs" />
@@ -302,13 +343,6 @@
     </Compile>
     <Compile Include="UpdateDialog.Designer.cs">
       <DependentUpon>UpdateDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Foursquare.cs" />
-    <Compile Include="FormInfo.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="FormInfo.Designer.cs">
-      <DependentUpon>FormInfo.cs</DependentUpon>
     </Compile>
     <Compile Include="Growl.cs" />
     <Compile Include="HookGlobalHotkey.cs" />
@@ -338,21 +372,17 @@
     <Compile Include="OpenURL.Designer.cs">
       <DependentUpon>OpenURL.cs</DependentUpon>
     </Compile>
-    <Compile Include="PictureBoxEx.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="RadixConvert.cs" />
-    <Compile Include="SearchWord.cs">
+    <Compile Include="SearchWordDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="SearchWord.Designer.cs">
-      <DependentUpon>SearchWord.cs</DependentUpon>
+    <Compile Include="SearchWordDialog.Designer.cs">
+      <DependentUpon>SearchWordDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Setting\SettingAtIdList.cs" />
     <Compile Include="Setting\SettingBase.cs" />
@@ -360,11 +390,11 @@
     <Compile Include="Setting\SettingTabs.cs" />
     <Compile Include="Setting\SettingLocal.cs" />
     <Compile Include="ShortUrl.cs" />
-    <Compile Include="ShowUserInfo.cs">
+    <Compile Include="UserInfoDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ShowUserInfo.Designer.cs">
-      <DependentUpon>ShowUserInfo.cs</DependentUpon>
+    <Compile Include="UserInfoDialog.Designer.cs">
+      <DependentUpon>UserInfoDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="StatusDictionary.cs" />
     <Compile Include="ToolStripAPIGauge.cs">
@@ -389,12 +419,15 @@
     <Compile Include="UserInfo.cs" />
     <Compile Include="WebApiException.cs" />
     <Compile Include="WebBrowserController.cs" />
-    <Compile Include="Win32Api.cs" />
+    <Compile Include="ControlTransaction.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Connection\HttpConnection.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="ApiInfoDialog.resx">
+      <DependentUpon>ApiInfoDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="AuthDialog.en.resx">
       <DependentUpon>AuthDialog.cs</DependentUpon>
     </EmbeddedResource>
@@ -468,6 +501,18 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ListManage.zh-CHS.resx">
       <DependentUpon>ListManage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MediaSelector.en.resx">
+      <DependentUpon>MediaSelector.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MediaSelector.resx">
+      <DependentUpon>MediaSelector.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MediaSelector.zh-CHS.resx">
+      <DependentUpon>MediaSelector.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WaitingDialog.resx">
+      <DependentUpon>WaitingDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Setting\Panel\ActionPanel.en.resx">
       <DependentUpon>ActionPanel.cs</DependentUpon>
@@ -613,6 +658,9 @@
     <EmbeddedResource Include="TabsDialog.zh-CHS.resx">
       <DependentUpon>TabsDialog.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="TweetThumbnail.en.resx">
+      <DependentUpon>TweetThumbnail.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="TweetThumbnail.resx">
       <DependentUpon>TweetThumbnail.cs</DependentUpon>
     </EmbeddedResource>
@@ -624,9 +672,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UpdateDialog.zh-CHS.resx">
       <DependentUpon>UpdateDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="FormInfo.resx">
-      <DependentUpon>FormInfo.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="InputTabName.en.resx">
       <DependentUpon>InputTabName.cs</DependentUpon>
@@ -666,23 +711,23 @@
     <EmbeddedResource Include="Properties\Resources.zh-CHS.resx">
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="SearchWord.en.resx">
-      <DependentUpon>SearchWord.cs</DependentUpon>
+    <EmbeddedResource Include="SearchWordDialog.en.resx">
+      <DependentUpon>SearchWordDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="SearchWord.resx">
-      <DependentUpon>SearchWord.cs</DependentUpon>
+    <EmbeddedResource Include="SearchWordDialog.resx">
+      <DependentUpon>SearchWordDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="SearchWord.zh-CHS.resx">
-      <DependentUpon>SearchWord.cs</DependentUpon>
+    <EmbeddedResource Include="SearchWordDialog.zh-CHS.resx">
+      <DependentUpon>SearchWordDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ShowUserInfo.en.resx">
-      <DependentUpon>ShowUserInfo.cs</DependentUpon>
+    <EmbeddedResource Include="UserInfoDialog.en.resx">
+      <DependentUpon>UserInfoDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ShowUserInfo.resx">
-      <DependentUpon>ShowUserInfo.cs</DependentUpon>
+    <EmbeddedResource Include="UserInfoDialog.resx">
+      <DependentUpon>UserInfoDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ShowUserInfo.zh-CHS.resx">
-      <DependentUpon>ShowUserInfo.cs</DependentUpon>
+    <EmbeddedResource Include="UserInfoDialog.zh-CHS.resx">
+      <DependentUpon>UserInfoDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Tween.en.resx">
       <DependentUpon>Tween.cs</DependentUpon>
@@ -725,11 +770,15 @@
       <Link>LICENSE.LGPL-3</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="app.config" />
     <None Include="app.manifest">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Icons\description.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\3b.ico" />
     <Content Include="Resources\4b.ico" />
     <Content Include="Resources\5b.ico" />
@@ -743,6 +792,7 @@
     <Content Include="Resources\InitialImage.png" />
     <Content Include="Resources\LogoImage.png" />
     <Content Include="Resources\MultiMediaImage.png" />
+    <None Include="Resources\PlayableOverlayImage.png" />
     <Content Include="Resources\re.ico" />
     <Content Include="Resources\re2.ico" />
     <Content Include="Resources\re3.ico" />
@@ -786,6 +836,12 @@
   </Target>
   -->
   <Target Name="AfterBuild">
-    <SGen BuildAssemblyName="$(TargetFileName)" BuildAssemblyPath="$(TargetDir)" ShouldGenerateSerializer="true" UseProxyTypes="false" Condition="'$(OS)' == 'Windows_NT'" />
+    <ItemGroup>
+      <SGenTypes Include="OpenTween.SettingAtIdList" />
+      <SGenTypes Include="OpenTween.SettingCommon" />
+      <SGenTypes Include="OpenTween.SettingLocal" />
+      <SGenTypes Include="OpenTween.SettingTabs" />
+    </ItemGroup>
+    <SGen BuildAssemblyName="$(TargetFileName)" BuildAssemblyPath="$(TargetDir)" ShouldGenerateSerializer="true" UseProxyTypes="false" Types="@(SGenTypes)" LogStandardErrorAsError="true" Condition="'$(OS)' == 'Windows_NT'" />
   </Target>
 </Project>

@@ -179,6 +179,7 @@
             // 
             resources.ApplyResources(this.GetPeriodPanel, "GetPeriodPanel");
             this.GetPeriodPanel.Name = "GetPeriodPanel";
+            this.GetPeriodPanel.IntervalChanged += new System.EventHandler<OpenTween.IntervalChangedEventArgs>(this.GetPeriodPanel_IntervalChanged);
             this.ToolTip1.SetToolTip(this.GetPeriodPanel, resources.GetString("GetPeriodPanel.ToolTip"));
             // 
             // ActionPanel
@@ -218,10 +219,21 @@
             this.Cancel.UseVisualStyleBackColor = true;
             this.Cancel.Click += new System.EventHandler(this.Cancel_Click);
             // 
+            // ColorDialog1
+            // 
+            this.ColorDialog1.AnyColor = true;
+            // 
+            // FontDialog1
+            // 
+            this.FontDialog1.AllowVerticalFonts = false;
+            this.FontDialog1.FontMustExist = true;
+            this.FontDialog1.ShowColor = true;
+            // 
             // AppendSettingDialog
             // 
             resources.ApplyResources(this, "$this");
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+            this.CancelButton = this.Cancel;
             this.Controls.Add(this.SplitContainer1);
             this.Controls.Add(this.Save);
             this.Controls.Add(this.Cancel);

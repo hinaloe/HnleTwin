@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(CooperatePanel));
-            this.IsPreviewFoursquareCheckBox = new System.Windows.Forms.CheckBox();
             this.MapThumbnailGroupBox = new System.Windows.Forms.GroupBox();
             this.MapThumbnailProviderComboBox = new System.Windows.Forms.ComboBox();
             this.label48 = new System.Windows.Forms.Label();
@@ -44,14 +43,10 @@
             this.ComboBoxTranslateLanguage = new System.Windows.Forms.ComboBox();
             this.Label29 = new System.Windows.Forms.Label();
             this.CheckNicoms = new System.Windows.Forms.CheckBox();
+            this.EnableImgAzyobuziNetCheckBox = new System.Windows.Forms.CheckBox();
+            this.ImgAzyobuziNetDisabledInDMCheckBox = new System.Windows.Forms.CheckBox();
             this.MapThumbnailGroupBox.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // IsPreviewFoursquareCheckBox
-            // 
-            resources.ApplyResources(this.IsPreviewFoursquareCheckBox, "IsPreviewFoursquareCheckBox");
-            this.IsPreviewFoursquareCheckBox.Name = "IsPreviewFoursquareCheckBox";
-            this.IsPreviewFoursquareCheckBox.UseVisualStyleBackColor = true;
             // 
             // MapThumbnailGroupBox
             // 
@@ -266,11 +261,29 @@
             this.CheckNicoms.Name = "CheckNicoms";
             this.CheckNicoms.UseVisualStyleBackColor = true;
             // 
+            // EnableImgAzyobuziNetCheckBox
+            // 
+            resources.ApplyResources(this.EnableImgAzyobuziNetCheckBox, "EnableImgAzyobuziNetCheckBox");
+            this.EnableImgAzyobuziNetCheckBox.Checked = true;
+            this.EnableImgAzyobuziNetCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.EnableImgAzyobuziNetCheckBox.Name = "EnableImgAzyobuziNetCheckBox";
+            this.EnableImgAzyobuziNetCheckBox.UseVisualStyleBackColor = true;
+            this.EnableImgAzyobuziNetCheckBox.CheckedChanged += new System.EventHandler(this.EnableImgAzyobuziNetCheckBox_CheckedChanged);
+            // 
+            // ImgAzyobuziNetDisabledInDMCheckBox
+            // 
+            resources.ApplyResources(this.ImgAzyobuziNetDisabledInDMCheckBox, "ImgAzyobuziNetDisabledInDMCheckBox");
+            this.ImgAzyobuziNetDisabledInDMCheckBox.Checked = true;
+            this.ImgAzyobuziNetDisabledInDMCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.ImgAzyobuziNetDisabledInDMCheckBox.Name = "ImgAzyobuziNetDisabledInDMCheckBox";
+            this.ImgAzyobuziNetDisabledInDMCheckBox.UseVisualStyleBackColor = true;
+            // 
             // CooperatePanel
             // 
             resources.ApplyResources(this, "$this");
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-            this.Controls.Add(this.IsPreviewFoursquareCheckBox);
+            this.Controls.Add(this.ImgAzyobuziNetDisabledInDMCheckBox);
+            this.Controls.Add(this.EnableImgAzyobuziNetCheckBox);
             this.Controls.Add(this.MapThumbnailGroupBox);
             this.Controls.Add(this.Label39);
             this.Controls.Add(this.UserAppointUrlText);
@@ -287,7 +300,6 @@
 
         #endregion
 
-        internal System.Windows.Forms.CheckBox IsPreviewFoursquareCheckBox;
         internal System.Windows.Forms.GroupBox MapThumbnailGroupBox;
         private System.Windows.Forms.Label label48;
         internal System.Windows.Forms.Label Label42;
@@ -302,5 +314,7 @@
         internal System.Windows.Forms.Label Label29;
         internal System.Windows.Forms.CheckBox CheckNicoms;
         internal System.Windows.Forms.ComboBox MapThumbnailProviderComboBox;
+        internal System.Windows.Forms.CheckBox EnableImgAzyobuziNetCheckBox;
+        internal System.Windows.Forms.CheckBox ImgAzyobuziNetDisabledInDMCheckBox;
     }
 }

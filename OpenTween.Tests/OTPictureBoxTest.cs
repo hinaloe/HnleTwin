@@ -19,16 +19,11 @@
 // the Free Software Foundation, Inc., 51 Franklin Street - Fifth Floor,
 // Boston, MA 02110-1301, USA.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Xunit;
-using Xunit.Extensions;
-using System.Drawing;
-using System.IO;
-using System.Drawing.Imaging;
 
 namespace OpenTween
 {
@@ -83,22 +78,53 @@ namespace OpenTween
 
                 picbox.ShowErrorImage();
 
-                picbox.Image = this.CreateDummyImage();
+                picbox.Image = TestUtils.CreateDummyImage();
 
                 Assert.Equal(PictureBoxSizeMode.Zoom, picbox.SizeMode);
                 Assert.Equal(PictureBoxSizeMode.Zoom, ((PictureBox)picbox).SizeMode);
             }
         }
 
-        MemoryImage CreateDummyImage()
+        [Fact]
+        public async Task SetImageFromAsync_Test()
         {
-            using (var bitmap = new Bitmap(100, 100))
-            using (var stream = new MemoryStream())
+            using (var picbox = new OTPictureBox())
             {
-                bitmap.Save(stream, ImageFormat.Png);
-                stream.Position = 0;
+                // Mono でのテスト実行時にデッドロックする問題の対策
+                SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
 
-                return MemoryImage.CopyFromStream(stream);
+                var tcs = new TaskCompletionSource<MemoryImage>();
+
+                var setImageTask = picbox.SetImageFromTask(() => tcs.Task);
+
+                Assert.Equal(picbox.InitialImage, ((PictureBox)picbox).Image);
+
+                var image = TestUtils.CreateDummyImage();
+                tcs.SetResult(image);
+                await setImageTask;
+
+                Assert.Equal(image, picbox.Image);
+            }
+        }
+
+        [Fact]
+        public async Task SetImageFromAsync_ErrorTest()
+        {
+            using (var picbox = new OTPictureBox())
+            {
+                // Mono でのテスト実行時にデッドロックする問題の対策
+                SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
+
+                var tcs = new TaskCompletionSource<MemoryImage>();
+
+                var setImageTask = picbox.SetImageFromTask(() => tcs.Task);
+
+                Assert.Equal(picbox.InitialImage, ((PictureBox)picbox).Image);
+
+                tcs.SetException(new InvalidImageException());
+                await setImageTask;
+
+                Assert.Equal(picbox.ErrorImage, ((PictureBox)picbox).Image);
             }
         }
     }

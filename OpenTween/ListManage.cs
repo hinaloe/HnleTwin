@@ -31,6 +31,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace OpenTween
@@ -52,17 +53,29 @@ namespace OpenTween
                 this.OKEditButton.PerformClick();
         }
 
-        private void ListManage_Load(object sender, EventArgs e)
+        private async void ListManage_Load(object sender, EventArgs e)
         {
-            this.UserList_SelectedIndexChanged(null, EventArgs.Empty);
-            if (TabInformations.GetInstance().SubscribableLists.Count == 0) this.RefreshLists();
-            foreach (ListElement listItem in TabInformations.GetInstance().SubscribableLists.FindAll((i) => i.Username == this.tw.Username))
+            using (ControlTransaction.Disabled(this))
             {
-                this.ListsList.Items.Add(listItem);
+                try
+                {
+                    var lists = (IReadOnlyList<ListElement>)TabInformations.GetInstance().SubscribableLists;
+                    if (lists.Count == 0)
+                        lists = await this.FetchListsAsync();
+
+                    this.UpdateListsListBox(lists);
+                }
+                catch (OperationCanceledException)
+                {
+                    this.DialogResult = DialogResult.Cancel;
+                    return;
+                }
+                catch (WebApiException)
+                {
+                    this.DialogResult = DialogResult.Abort;
+                    return;
+                }
             }
-            if (this.ListsList.Items.Count > 0)
-                this.ListsList.SelectedIndex = 0;
-            this.ListsList.Focus();
         }
 
         private void ListsList_SelectedIndexChanged(object sender, EventArgs e)
@@ -295,39 +308,64 @@ namespace OpenTween
         private void DisplayIcon(Image img)
         {
             if (img == null || this.UserList.SelectedItem == null) return;
-            if (((UserInfo)this.UserList.SelectedItem).ImageUrl.ToString() == (string)img.Tag)
+            if (((UserInfo)this.UserList.SelectedItem).ImageUrl.AbsoluteUri == (string)img.Tag)
                 this.UserIcon.Image = img;
         }
 
-        private void RefreshListsButton_Click(object sender, EventArgs e)
+        private async void RefreshListsButton_Click(object sender, EventArgs e)
         {
-            this.RefreshLists();
-            this.ListsList.Items.Clear();
-            this.ListManage_Load(null, EventArgs.Empty);
-        }
-
-        private void RefreshLists()
-        {
-            using (FormInfo dlg = new FormInfo(this, Properties.Resources.ListsGetting, RefreshLists_Dowork))
+            using (ControlTransaction.Disabled(this))
             {
-                dlg.ShowDialog();
-                if (!String.IsNullOrEmpty((string)dlg.Result))
+                try
                 {
-                    MessageBox.Show(String.Format(Properties.Resources.ListsDeleteFailed, (string)dlg.Result));
-                    return;
+                    var lists = await this.FetchListsAsync();
+                    this.UpdateListsListBox(lists);
                 }
+                catch (OperationCanceledException) { }
+                catch (WebApiException) { }
             }
         }
 
-        private void RefreshLists_Dowork(object sender, DoWorkEventArgs e)
+        private async Task<IReadOnlyList<ListElement>> FetchListsAsync()
         {
-            e.Result = tw.GetListsApi();
+            using (var dialog = new WaitingDialog(Properties.Resources.ListsGetting))
+            {
+                var cancellationToken = dialog.EnableCancellation();
+
+                var task = Task.Run(() => tw.GetListsApi());
+                var err = await dialog.WaitForAsync(this, task);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!string.IsNullOrEmpty(err))
+                {
+                    MessageBox.Show(string.Format(Properties.Resources.ListsDeleteFailed, err));
+                    throw new WebApiException(err);
+                }
+            }
+
+            return TabInformations.GetInstance().SubscribableLists;
         }
 
-        private void UserWeb_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private void UpdateListsListBox(IEnumerable<ListElement> lists)
+        {
+            using (ControlTransaction.Update(this.ListsList))
+            {
+                this.ListsList.Items.Clear();
+                foreach (var listItem in lists.Where(x => x.Username == this.tw.Username))
+                {
+                    this.ListsList.Items.Add(listItem);
+                }
+                if (this.ListsList.Items.Count > 0)
+                    this.ListsList.SelectedIndex = 0;
+                this.ListsList.Focus();
+            }
+        }
+
+        private async void UserWeb_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             if (this.Owner != null)
-                ((TweenMain)this.Owner).OpenUriAsync(UserWeb.Text);
+                await ((TweenMain)this.Owner).OpenUriInBrowserAsync(UserWeb.Text);
         }
 
         private class NewListElement : ListElement

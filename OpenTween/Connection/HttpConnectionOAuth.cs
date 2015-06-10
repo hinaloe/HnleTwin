@@ -50,6 +50,7 @@ using StringBuilder = System.Text.StringBuilder;
 using HttpRequestHeader = System.Net.HttpRequestHeader;
 using HMACSHA1 = System.Security.Cryptography.HMACSHA1;
 using Encoding = System.Text.Encoding;
+using System;
 
 namespace OpenTween
 {
@@ -280,7 +281,7 @@ namespace OpenTween
 		{
 			// PIN-based flow
 			if ( string.IsNullOrEmpty( requestToken ) )
-				throw new Exception( "Sequence error.(requestToken is blank)" );
+				throw new InvalidOperationException( "Sequence error.(requestToken is blank)" );
 
 			// アクセストークン取得
 			string content = "";
@@ -342,8 +343,10 @@ namespace OpenTween
 		public HttpStatusCode AuthenticateXAuth( Uri accessTokenUrl, string username, string password, ref string content )
 		{
 			// ユーザー・パスワードチェック
-			if ( string.IsNullOrEmpty( username ) || string.IsNullOrEmpty( password ) )
-				throw new Exception( "Sequence error.(username or password is blank)" );
+			if ( string.IsNullOrEmpty( username ) )
+				throw new ArgumentException( "username is null or empty", "username" );
+            if ( string.IsNullOrEmpty( password ) )
+                throw new ArgumentException( "password is null or empty", "password" );
 
 			// xAuthの拡張パラメータ設定
 			Dictionary< string, string > parameter = new Dictionary< string, string >();
@@ -531,7 +534,7 @@ namespace OpenTween
 			// パラメタをソート済みディクショナリに詰替（OAuthの仕様）
 			SortedDictionary< string, string > sorted = new SortedDictionary< string, string >( parameter );
 			// URLエンコード済みのクエリ形式文字列に変換
-			string paramString = this.CreateQueryString( sorted );
+			string paramString = MyCommon.BuildQueryString( sorted );
 			// アクセス先URLの整形
 			string url = string.Format( "{0}://{1}{2}", uri.Scheme, uri.Host, uri.AbsolutePath );
 			// 署名のベース文字列生成（&区切り）。クエリ形式文字列は再エンコードする

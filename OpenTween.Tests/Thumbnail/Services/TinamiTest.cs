@@ -22,9 +22,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
+using Moq;
 using Xunit;
 using Xunit.Extensions;
 
@@ -36,24 +41,21 @@ namespace OpenTween.Thumbnail.Services
         {
             public string FakeXml { get; set; }
 
-            public TestTinami(string pattern, string replacement)
-                : base(pattern, replacement)
+            public TestTinami()
+                : base(null)
             {
             }
 
-            protected override XDocument FetchContentInfoApi(string url)
+            protected override Task<XDocument> FetchContentInfoApiAsync(string contentId, CancellationToken token)
             {
-                Assert.True(Regex.IsMatch(url, @"http://api\.tinami\.com/content/info\?cont_id=.+&api_key=.+"));
-
-                return XDocument.Parse(this.FakeXml);
+                return Task.FromResult(XDocument.Parse(this.FakeXml));
             }
         }
 
         [Fact]
-        public void ApiTest()
+        public async Task ApiTest()
         {
-            var service = new TestTinami(@"^http://www\.tinami\.com/view/(?<ContentId>\d+)$",
-                "http://api.tinami.com/content/info?cont_id=${ContentId}&api_key=" + ApplicationSettings.TINAMIApiKey);
+            var service = new TestTinami();
 
             service.FakeXml = @"<?xml version='1.0' encoding='utf-8' ?>
 <rsp stat='ok'>
@@ -70,7 +72,7 @@ namespace OpenTween.Thumbnail.Services
     </image>
   </content>
 </rsp>";
-            var thumbinfo = service.GetThumbnailInfo("http://www.tinami.com/view/12345", null);
+            var thumbinfo = await service.GetThumbnailInfoAsync("http://www.tinami.com/view/12345", null, CancellationToken.None);
 
             Assert.NotNull(thumbinfo);
             Assert.Equal("http://www.tinami.com/view/12345", thumbinfo.ImageUrl);
@@ -79,16 +81,15 @@ namespace OpenTween.Thumbnail.Services
         }
 
         [Fact]
-        public void ApiErrorTest()
+        public async Task ApiErrorTest()
         {
-            var service = new TestTinami(@"^http://www\.tinami\.com/view/(?<ContentId>\d+)$",
-                "http://api.tinami.com/content/info?cont_id=${ContentId}&api_key=" + ApplicationSettings.TINAMIApiKey);
+            var service = new TestTinami();
 
             service.FakeXml = @"<?xml version='1.0' encoding='utf-8'?>
 <rsp stat='user_only'>
   <err msg='この作品は登録ユーザー限定の作品です。'/>
 </rsp>";
-            var thumbinfo = service.GetThumbnailInfo("http://www.tinami.com/view/12345", null);
+            var thumbinfo = await service.GetThumbnailInfoAsync("http://www.tinami.com/view/12345", null, CancellationToken.None);
 
             Assert.Null(thumbinfo);
         }

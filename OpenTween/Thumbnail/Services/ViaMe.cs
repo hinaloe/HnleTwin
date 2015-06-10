@@ -22,47 +22,77 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Net;
+using System.Net.Http;
 using System.Runtime.Serialization.Json;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
-using System.Net;
+using OpenTween.Connection;
 
 namespace OpenTween.Thumbnail.Services
 {
-    class ViaMe : SimpleThumbnailService
+    class ViaMe : IThumbnailService
     {
-        public ViaMe(string pattern, string replacement = "${0}")
-            : base(pattern, replacement)
+        public static readonly Regex UrlPatternRegex =
+            new Regex(@"^https?://via\.me/-(\w+)$");
+
+        protected HttpClient http
+        {
+            get { return this.localHttpClient ?? Networking.Http; }
+        }
+        private readonly HttpClient localHttpClient;
+
+        public ViaMe()
+            : this(null)
         {
         }
 
-        public override ThumbnailInfo GetThumbnailInfo(string url, PostClass post)
+        public ViaMe(HttpClient http)
         {
-            var apiUrl = base.ReplaceUrl(url);
-            if (apiUrl == null) return null;
+            this.localHttpClient = http;
+        }
 
-            using (var client = new OTWebClient())
-            using (var jsonReader = JsonReaderWriterFactory.CreateJsonReader(client.DownloadData(apiUrl), XmlDictionaryReaderQuotas.Max))
+        public override async Task<ThumbnailInfo> GetThumbnailInfoAsync(string url, PostClass post, CancellationToken token)
+        {
+            var match = ViaMe.UrlPatternRegex.Match(url);
+            if (!match.Success)
+                return null;
+
+            var postId = match.Groups[1].Value;
+
+            try
             {
-                var xElm = XElement.Load(jsonReader);
+                var apiUrl = "http://via.me/api/v1/posts/" + postId;
 
-                var thumbUrlElm = xElm.XPathSelectElement("/response/post/thumb_url");
-                if (thumbUrlElm == null)
+                var json = await this.http.GetByteArrayAsync(apiUrl)
+                    .ConfigureAwait(false);
+
+                using (var jsonReader = JsonReaderWriterFactory.CreateJsonReader(json, XmlDictionaryReaderQuotas.Max))
                 {
-                    return null;
+                    var xElm = XElement.Load(jsonReader);
+
+                    var thumbUrlElm = xElm.XPathSelectElement("/response/post/thumb_url");
+                    if (thumbUrlElm == null)
+                        return null;
+
+                    var textElm = xElm.XPathSelectElement("/response/post/text");
+
+                    return new ThumbnailInfo
+                    {
+                        ImageUrl = url,
+                        ThumbnailUrl = thumbUrlElm.Value,
+                        TooltipText = textElm == null ? null : textElm.Value,
+                    };
                 }
-
-                var textElm = xElm.XPathSelectElement("/response/post/text");
-
-                return new ThumbnailInfo()
-                {
-                    ImageUrl = url,
-                    ThumbnailUrl = thumbUrlElm.Value,
-                    TooltipText = textElm == null ? null : textElm.Value,
-                };
             }
+            catch (HttpRequestException) { }
+
+            return null;
         }
     }
 }

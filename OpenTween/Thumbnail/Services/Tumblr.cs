@@ -1,10 +1,5 @@
 ﻿// OpenTween - Client of Twitter
-// Copyright (c) 2007-2011 kiri_feather (@kiri_feather) <kiri.feather@gmail.com>
-//           (c) 2008-2011 Moz (@syo68k)
-//           (c) 2008-2011 takeshik (@takeshik) <http://www.takeshik.org/>
-//           (c) 2010-2011 anis774 (@anis774) <http://d.hatena.ne.jp/anis774/>
-//           (c) 2010-2011 fantasticswallow (@f_swallow) <http://twitter.com/f_swallow>
-//           (c) 2012      kim_upsilon (@kim_upsilon) <https://upsilo.net/~upsilon/>
+// Copyright (c) 2014 kim_upsilon (@kim_upsilon) <https://upsilo.net/~upsilon/>
 // All rights reserved.
 //
 // This file is part of OpenTween.
@@ -27,58 +22,98 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
+using System.Xml.Linq;
+using System.Xml.XPath;
+using OpenTween.Connection;
 
 namespace OpenTween.Thumbnail.Services
 {
-    class Tumblr : SimpleThumbnailService
+    class Tumblr : IThumbnailService
     {
-        public Tumblr(string pattern, string replacement = "${0}")
-            : base(pattern, replacement)
+        public static readonly Regex UrlPatternRegex =
+            new Regex(@"^https?://(?<host>[^.]+\.tumblr\.com|tumblr\.[^.]+\.[^.]+)/post/(?<postId>[0-9]+)(/.*)?");
+
+        protected HttpClient http
+        {
+            get { return this.localHttpClient ?? Networking.Http; }
+        }
+        private readonly HttpClient localHttpClient;
+
+        public Tumblr()
+            : this(null)
         {
         }
 
-        public override ThumbnailInfo GetThumbnailInfo(string url, PostClass post)
+        public Tumblr(HttpClient http)
         {
-            var apiUrl = base.ReplaceUrl(url);
-            if (apiUrl == null) return null;
+            this.localHttpClient = http;
+        }
 
-            var http = new HttpVarious();
-            var src = "";
-            string imgurl = null;
-            string errmsg;
-            if (http.GetData(apiUrl, null, out src, 0, out errmsg, ""))
+        public override async Task<ThumbnailInfo> GetThumbnailInfoAsync(string url, PostClass post, CancellationToken token)
+        {
+            var match = Tumblr.UrlPatternRegex.Match(url);
+            if (!match.Success)
+                return null;
+
+            // 参照: http://www.tumblr.com/docs/en/api/v2#photo-posts
+
+            var host = match.Groups["host"].Value;
+            var postId = match.Groups["postId"].Value;
+
+            var param = new Dictionary<string, string>
             {
-                var xdoc = new XmlDocument();
-                try
-                {
-                    xdoc.LoadXml(src);
+                {"api_key", ApplicationSettings.TumblrConsumerKey},
+                {"id", match.Groups["postId"].Value},
+            };
 
-                    var type = xdoc.SelectSingleNode("/tumblr/posts/post").Attributes["type"].Value;
-                    if (type == "photo")
-                    {
-                        imgurl = xdoc.SelectSingleNode("/tumblr/posts/post/photo-url").InnerText;
-                    }
-                    else
-                    {
-                        errmsg = "PostType:" + type;
-                        return null;
-                    }
-                }
-                catch (Exception)
+            try
+            {
+                var apiUrl = string.Format("https://api.tumblr.com/v2/blog/{0}/posts?", host) + MyCommon.BuildQueryString(param);
+                using (var response = await this.http.GetAsync(apiUrl, token).ConfigureAwait(false))
                 {
-                    return null;
-                }
+                    var jsonBytes = await response.Content.ReadAsByteArrayAsync()
+                        .ConfigureAwait(false);
 
-                return new ThumbnailInfo()
-                {
-                    ImageUrl = url,
-                    ThumbnailUrl = imgurl,
-                    TooltipText = null,
-                };
+                    var thumbs = ParsePhotoPostJson(jsonBytes);
+
+                    return thumbs.FirstOrDefault();
+                }
             }
+            catch (HttpRequestException) { } // たまに api.tumblr.com が名前解決できない
+
             return null;
+        }
+
+        internal static ThumbnailInfo[] ParsePhotoPostJson(byte[] jsonBytes)
+        {
+            using (var jsonReader = JsonReaderWriterFactory.CreateJsonReader(jsonBytes, XmlDictionaryReaderQuotas.Max))
+            {
+                var xElm = XElement.Load(jsonReader);
+
+                var item = xElm.XPathSelectElement("/response/posts/item[1]");
+                if (item == null)
+                    return new ThumbnailInfo[0];
+
+                var postUrlElm = item.Element("post_url");
+
+                var thumbs =
+                    from photoElm in item.XPathSelectElements("photos/item/alt_sizes/item[1]/url")
+                    select new ThumbnailInfo
+                    {
+                        ImageUrl = postUrlElm.Value,
+                        ThumbnailUrl = photoElm.Value,
+                        TooltipText = null,
+                    };
+
+                return thumbs.ToArray();
+            }
         }
     }
 }

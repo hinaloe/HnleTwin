@@ -30,10 +30,10 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 using System.Xml.Serialization;
+using OpenTween.Connection;
 
 namespace OpenTween
 {
-    [Serializable]
     public class SettingLocal : SettingBase<SettingLocal>, IDisposable
     {
 #region Settingクラス基本
@@ -48,11 +48,20 @@ namespace OpenTween
         }
 #endregion
 
+        /// <summary>
+        /// ウィンドウサイズ等の保存時のDPI
+        /// </summary>
+        public SizeF ScaleDimension = SizeF.Empty;
+
         public Point FormLocation = new Point(0, 0);
         public int SplitterDistance = 200;
-        public int AdSplitterDistance = 350;
         public Size FormSize = new Size(600, 500);
+
+        /// <summary>
+        /// 文末ステータス
+        /// </summary>
         public string StatusText = "";
+
         public bool UseRecommendStatus = false;
         public int Width1 = 48;
         public int Width2 = 80;
@@ -71,7 +80,7 @@ namespace OpenTween
         public int DisplayIndex7 = 0;
         public int DisplayIndex8 = 7;
         public string BrowserPath = "";
-        public HttpConnection.ProxyType ProxyType = HttpConnection.ProxyType.IE;
+        public ProxyType ProxyType = ProxyType.IE;
         public string ProxyAddress = "127.0.0.1";
         public int ProxyPort = 80;
         public string ProxyUser = "";
@@ -305,6 +314,11 @@ namespace OpenTween
             }
         }
 
+        /// <summary>
+        /// 絵文字の表示に Twemoji (https://github.com/twitter/twemoji) を使用するか
+        /// </summary>
+        public bool UseTwemoji = true;
+
         [XmlIgnore]
         private FontConverter fontConverter = new FontConverter();
 
@@ -329,6 +343,16 @@ namespace OpenTween
         protected Color StringToColor(string str)
         {
             return (Color)this.colorConverter.ConvertFromString(str);
+        }
+
+        /// <summary>
+        /// 指定されたスケールと SettingLocal.ScaleDimension のスケールとの拡大比を返します
+        /// </summary>
+        public SizeF GetConfigScaleFactor(SizeF currentSizeDimension)
+        {
+            return new SizeF(
+                currentSizeDimension.Width / this.ScaleDimension.Width,
+                currentSizeDimension.Height / this.ScaleDimension.Height);
         }
 
         public void Dispose()

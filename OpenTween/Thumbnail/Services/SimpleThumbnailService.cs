@@ -22,8 +22,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OpenTween.Thumbnail.Services
 {
@@ -37,9 +40,8 @@ namespace OpenTween.Thumbnail.Services
         protected string fullsize_replacement;
 
         public SimpleThumbnailService(string pattern, string replacement)
+            : this(pattern, replacement, null)
         {
-            this.regex = new Regex(pattern, RegexOptions.IgnoreCase);
-            this.thumb_replacement = replacement;
         }
 
         public SimpleThumbnailService(string pattern, string replacement, string file_replacement)
@@ -49,18 +51,21 @@ namespace OpenTween.Thumbnail.Services
             this.fullsize_replacement = file_replacement;
         }
 
-        public override ThumbnailInfo GetThumbnailInfo(string url, PostClass post)
+        public override Task<ThumbnailInfo> GetThumbnailInfoAsync(string url, PostClass post, CancellationToken token)
         {
-            var thumbnailUrl = this.ReplaceUrl(url);
-            if (thumbnailUrl == null) return null;
-
-            return new ThumbnailInfo()
+            return Task.Run(() =>
             {
-                ImageUrl = url,
-                ThumbnailUrl = thumbnailUrl,
-                TooltipText = null,
-                FullSizeImageUrl = ReplaceUrl(url, this.fullsize_replacement)
-            };
+                var thumbnailUrl = this.ReplaceUrl(url);
+                if (thumbnailUrl == null) return null;
+
+                return new ThumbnailInfo
+                {
+                    ImageUrl = url,
+                    ThumbnailUrl = thumbnailUrl,
+                    TooltipText = null,
+                    FullSizeImageUrl = ReplaceUrl(url, this.fullsize_replacement)
+                };
+            }, token);
         }
 
         protected string ReplaceUrl(string url)

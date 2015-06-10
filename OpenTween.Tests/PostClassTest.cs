@@ -51,7 +51,7 @@ namespace OpenTween
                 string InReplyToUser = null,
                 long? InReplyToStatusId = null,
                 string Source = null,
-                string SourceHtml = null,
+                Uri SourceUri = null,
                 List<string> ReplyToList = null,
                 bool IsMe = false,
                 bool IsDm = false,
@@ -62,7 +62,7 @@ namespace OpenTween
                 StatusGeo Geo = null) :
                 base(Nickname, textFromApi, text, ImageUrl, screenName, createdAt, statusId, IsFav, IsRead,
                 IsReply, IsExcludeReply, IsProtect, IsOwl, IsMark, InReplyToUser, InReplyToStatusId, Source,
-                SourceHtml, ReplyToList, IsMe, IsDm, userId, FilterHit, RetweetedBy, RetweetedId, Geo)
+                SourceUri, ReplyToList, IsMe, IsDm, userId, FilterHit, RetweetedBy, RetweetedId, Geo)
             {
             }
 
@@ -162,6 +162,54 @@ namespace OpenTween
         }
 
         [Fact]
+        public void SourceHtml_Test()
+        {
+            var post = new TestPostClass
+            {
+                Source = "Twitter Web Client",
+                SourceUri = new Uri("http://twitter.com/"),
+            };
+
+            Assert.Equal("<a href=\"http://twitter.com/\" rel=\"nofollow\">Twitter Web Client</a>", post.SourceHtml);
+        }
+
+        [Fact]
+        public void SourceHtml_PlainTextTest()
+        {
+            var post = new TestPostClass
+            {
+                Source = "web",
+                SourceUri = null,
+            };
+
+            Assert.Equal("web", post.SourceHtml);
+        }
+
+        [Fact]
+        public void SourceHtml_EscapeTest()
+        {
+            var post = new TestPostClass
+            {
+                Source = "<script>alert(1)</script>",
+                SourceUri = new Uri("http://example.com/?aaa=123&bbb=456"),
+            };
+
+            Assert.Equal("<a href=\"http://example.com/?aaa=123&amp;bbb=456\" rel=\"nofollow\">&lt;script&gt;alert(1)&lt;/script&gt;</a>", post.SourceHtml);
+        }
+
+        [Fact]
+        public void SourceHtml_EscapePlainTextTest()
+        {
+            var post = new TestPostClass
+            {
+                Source = "<script>alert(1)</script>",
+                SourceUri = null,
+            };
+
+            Assert.Equal("&lt;script&gt;alert(1)&lt;/script&gt;", post.SourceHtml);
+        }
+
+        [Fact]
         public void DeleteTest()
         {
             var post = new TestPostClass
@@ -181,6 +229,90 @@ namespace OpenTween
             Assert.False(post.IsReply);
             Assert.Empty(post.ReplyToList);
             Assert.Equal(-1, post.StateIndex);
+        }
+
+        [Fact]
+        public void CanDeleteBy_SentDMTest()
+        {
+            var post = new TestPostClass
+            {
+                IsDm = true,
+                IsMe = true, // 自分が送信した DM
+                UserId = 222L, // 送信先ユーザーID
+            };
+
+            Assert.True(post.CanDeleteBy(selfUserId: 111L));
+        }
+
+        [Fact]
+        public void CanDeleteBy_ReceivedDMTest()
+        {
+            var post = new TestPostClass
+            {
+                IsDm = true,
+                IsMe = false, // 自分が受け取った DM
+                UserId = 222L, // 送信元ユーザーID
+            };
+
+            Assert.True(post.CanDeleteBy(selfUserId: 111L));
+        }
+
+        [Fact]
+        public void CanDeleteBy_MyTweetTest()
+        {
+            var post = new TestPostClass
+            {
+                UserId = 111L, // 自分のツイート
+            };
+
+            Assert.True(post.CanDeleteBy(selfUserId: 111L));
+        }
+
+        [Fact]
+        public void CanDeleteBy_OthersTweetTest()
+        {
+            var post = new TestPostClass
+            {
+                UserId = 222L, // 他人のツイート
+            };
+
+            Assert.False(post.CanDeleteBy(selfUserId: 111L));
+        }
+
+        [Fact]
+        public void CanDeleteBy_RetweetedByMeTest()
+        {
+            var post = new TestPostClass
+            {
+                RetweetedByUserId = 111L, // 自分がリツイートした
+                UserId = 222L, // 他人のツイート
+            };
+
+            Assert.True(post.CanDeleteBy(selfUserId: 111L));
+        }
+
+        [Fact]
+        public void CanDeleteBy_RetweetedByOthersTest()
+        {
+            var post = new TestPostClass
+            {
+                RetweetedByUserId = 333L, // 他人がリツイートした
+                UserId = 222L, // 他人のツイート
+            };
+
+            Assert.False(post.CanDeleteBy(selfUserId: 111L));
+        }
+
+        [Fact]
+        public void CanDeleteBy_MyTweetHaveBeenRetweetedByOthersTest()
+        {
+            var post = new TestPostClass
+            {
+                RetweetedByUserId = 222L, // 他人がリツイートした
+                UserId = 111L, // 自分のツイート
+            };
+
+            Assert.True(post.CanDeleteBy(selfUserId: 111L));
         }
     }
 }

@@ -22,12 +22,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
+using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Xml;
 using System.Xml.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
+using OpenTween.Connection;
 
 namespace OpenTween.Thumbnail.Services
 {
@@ -42,12 +44,33 @@ namespace OpenTween.Thumbnail.Services
         protected IEnumerable<Regex> UrlRegex = null;
         protected Timer UpdateTimer;
 
+        protected HttpClient http
+        {
+            get { return this.localHttpClient ?? Networking.Http; }
+        }
+        private readonly HttpClient localHttpClient;
+
         private object LockObj = new object();
 
-        public ImgAzyobuziNet(bool autoupdate = false)
+        public ImgAzyobuziNet(bool autoupdate)
+            : this(null, autoupdate)
         {
-            this.UpdateTimer = new Timer(_ => this.LoadRegex());
+        }
+
+        public ImgAzyobuziNet(HttpClient http)
+            : this(http, autoupdate: false)
+        {
+        }
+
+        public ImgAzyobuziNet(HttpClient http, bool autoupdate)
+        {
+            this.UpdateTimer = new Timer(async _ => await this.LoadRegexAsync());
             this.AutoUpdate = autoupdate;
+
+            this.Enabled = true;
+            this.DisabledInDM = true;
+
+            this.localHttpClient = http;
         }
 
         public bool AutoUpdate
@@ -65,6 +88,16 @@ namespace OpenTween.Thumbnail.Services
         }
         private bool _AutoUpdate = false;
 
+        /// <summary>
+        /// img.azyobizi.net によるサムネイル情報の取得を有効にするか
+        /// </summary>
+        public bool Enabled { get; set; }
+
+        /// <summary>
+        /// ダイレクトメッセージに含まれる画像URLに対して img.azyobuzi.net を使用しない
+        /// </summary>
+        public bool DisabledInDM { get; set; }
+
         protected void StartAutoUpdate()
         {
             this.UpdateTimer.Change(0, 30 * 60 * 1000); ; // 30分おきに更新
@@ -75,13 +108,15 @@ namespace OpenTween.Thumbnail.Services
             this.UpdateTimer.Change(Timeout.Infinite, Timeout.Infinite);
         }
 
-        public void LoadRegex()
+        public async Task LoadRegexAsync()
         {
             foreach (var host in this.ApiHosts)
             {
                 try
                 {
-                    var result = this.LoadRegex(host);
+                    var result = await this.LoadRegexAsync(host)
+                        .ConfigureAwait(false);
+
                     if (result) return;
                 }
                 catch (Exception)
@@ -100,11 +135,14 @@ namespace OpenTween.Thumbnail.Services
             }
         }
 
-        public bool LoadRegex(string apiBase)
+        public async Task<bool> LoadRegexAsync(string apiBase)
         {
             try
             {
-                using (var jsonReader = JsonReaderWriterFactory.CreateJsonReader(this.FetchRegex(apiBase), XmlDictionaryReaderQuotas.Max))
+                var jsonBytes = await this.FetchRegexAsync(apiBase)
+                    .ConfigureAwait(false);
+
+                using (var jsonReader = JsonReaderWriterFactory.CreateJsonReader(jsonBytes, XmlDictionaryReaderQuotas.Max))
                 {
                     var xElm = XElement.Load(jsonReader);
 
@@ -114,6 +152,7 @@ namespace OpenTween.Thumbnail.Services
                     lock (this.LockObj)
                     {
                         this.UrlRegex = xElm.Elements("item")
+                            .Where(x => x.Element("name").Value != "Tumblr") // Tumblrのサムネイル表示には img.azyobuzi.net を使用しない
                             .Select(e => new Regex(e.Element("regex").Value, RegexOptions.IgnoreCase))
                             .ToArray();
 
@@ -123,42 +162,58 @@ namespace OpenTween.Thumbnail.Services
 
                 return true;
             }
-            catch (WebException) { } // サーバーが2xx以外のステータスコードを返した場合
+            catch (HttpRequestException) { } // サーバーが2xx以外のステータスコードを返した場合
+            catch (OperationCanceledException) { } // リクエストがタイムアウトした場合
             catch (XmlException) { } // サーバーが不正なJSONを返した場合
 
             return false;
         }
 
-        protected virtual byte[] FetchRegex(string apiBase)
+        protected virtual async Task<byte[]> FetchRegexAsync(string apiBase)
         {
-            using (var client = new OTWebClient() { Timeout = 1000 })
+            using (var cts = new CancellationTokenSource(millisecondsDelay: 1000))
+            using (var response = await this.http.GetAsync(apiBase + "regex.json", cts.Token)
+                .ConfigureAwait(false))
             {
-                return client.DownloadData(apiBase + "regex.json");
+                response.EnsureSuccessStatusCode();
+
+                return await response.Content.ReadAsByteArrayAsync()
+                    .ConfigureAwait(false);
             }
         }
 
-        public override ThumbnailInfo GetThumbnailInfo(string url, PostClass post)
+        public override Task<ThumbnailInfo> GetThumbnailInfoAsync(string url, PostClass post, CancellationToken token)
         {
-            lock (this.LockObj)
+            return Task.Run(() =>
             {
-                if (this.UrlRegex == null)
+                if (!this.Enabled)
                     return null;
 
-                foreach (var regex in this.UrlRegex)
+                if (this.DisabledInDM && post != null && post.IsDm)
+                    return null;
+
+                lock (this.LockObj)
                 {
-                    if (regex.IsMatch(url))
+                    if (this.UrlRegex == null)
+                        return null;
+
+                    foreach (var regex in this.UrlRegex)
                     {
-                        return new ThumbnailInfo()
+                        if (regex.IsMatch(url))
                         {
-                            ImageUrl = url,
-                            ThumbnailUrl = this.ApiBase + "redirect?size=large&uri=" + Uri.EscapeDataString(url),
-                            TooltipText = null,
-                        };
+                            return new ThumbnailInfo
+                            {
+                                ImageUrl = url,
+                                ThumbnailUrl = this.ApiBase + "redirect?size=large&uri=" + Uri.EscapeDataString(url),
+                                FullSizeImageUrl = this.ApiBase + "redirect?size=full&uri=" + Uri.EscapeDataString(url),
+                                TooltipText = null,
+                            };
+                        }
                     }
                 }
-            }
 
-            return null;
+                return null;
+            }, token);
         }
 
         public virtual void Dispose()

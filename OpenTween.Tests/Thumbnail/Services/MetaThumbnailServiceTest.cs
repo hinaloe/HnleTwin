@@ -22,7 +22,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Moq;
 using Xunit;
 using Xunit.Extensions;
 
@@ -34,19 +39,19 @@ namespace OpenTween.Thumbnail.Services
         {
             public string FakeHtml { get; set; }
 
-            public TestMetaThumbnailService(string url)
-                : base(url)
+            public TestMetaThumbnailService(string urlPattern)
+                : base(null, urlPattern)
             {
             }
 
-            protected override string FetchImageUrl(string url)
+            protected override Task<string> FetchImageUrlAsync(string url, CancellationToken token)
             {
-                return this.FakeHtml;
+                return Task.FromResult(this.FakeHtml);
             }
         }
 
-        [Fact(DisplayName = "Open Graph protocol")]
-        public void OGPMetaTest()
+        [Fact]
+        public async Task OGPMetaTest()
         {
             var service = new TestMetaThumbnailService(@"http://example.com/.+");
 
@@ -63,7 +68,7 @@ namespace OpenTween.Thumbnail.Services
 </body>
 </html>
 ";
-            var thumbinfo = service.GetThumbnailInfo("http://example.com/abcd", null);
+            var thumbinfo = await service.GetThumbnailInfoAsync("http://example.com/abcd", null, CancellationToken.None);
 
             Assert.NotNull(thumbinfo);
             Assert.Equal("http://example.com/abcd", thumbinfo.ImageUrl);
@@ -71,8 +76,8 @@ namespace OpenTween.Thumbnail.Services
             Assert.Null(thumbinfo.TooltipText);
         }
 
-        [Fact(DisplayName = "Twitter Cards")]
-        public void TwitterMetaTest()
+        [Fact]
+        public async Task TwitterMetaTest()
         {
             var service = new TestMetaThumbnailService(@"http://example.com/.+");
 
@@ -85,7 +90,7 @@ namespace OpenTween.Thumbnail.Services
 
 <p>hogehoge
 ";
-            var thumbinfo = service.GetThumbnailInfo("http://example.com/abcd", null);
+            var thumbinfo = await service.GetThumbnailInfoAsync("http://example.com/abcd", null, CancellationToken.None);
 
             Assert.NotNull(thumbinfo);
             Assert.Equal("http://example.com/abcd", thumbinfo.ImageUrl);
@@ -93,8 +98,8 @@ namespace OpenTween.Thumbnail.Services
             Assert.Null(thumbinfo.TooltipText);
         }
 
-        [Fact(DisplayName = "Twitpicとか")]
-        public void InvalidMetaTest()
+        [Fact]
+        public async Task InvalidMetaTest()
         {
             var service = new TestMetaThumbnailService(@"http://example.com/.+");
 
@@ -107,7 +112,7 @@ namespace OpenTween.Thumbnail.Services
 
 <p>hogehoge
 ";
-            var thumbinfo = service.GetThumbnailInfo("http://example.com/abcd", null);
+            var thumbinfo = await service.GetThumbnailInfoAsync("http://example.com/abcd", null, CancellationToken.None);
 
             Assert.NotNull(thumbinfo);
             Assert.Equal("http://example.com/abcd", thumbinfo.ImageUrl);
@@ -116,7 +121,7 @@ namespace OpenTween.Thumbnail.Services
         }
 
         [Fact]
-        public void NoMetaTest()
+        public async Task NoMetaTest()
         {
             var service = new TestMetaThumbnailService(@"http://example.com/.+");
 
@@ -128,7 +133,7 @@ namespace OpenTween.Thumbnail.Services
 
 <p>hogehoge
 ";
-            var thumbinfo = service.GetThumbnailInfo("http://example.com/abcd", null);
+            var thumbinfo = await service.GetThumbnailInfoAsync("http://example.com/abcd", null, CancellationToken.None);
 
             Assert.Null(thumbinfo);
         }

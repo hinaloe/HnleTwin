@@ -22,51 +22,92 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
-using System.Runtime.Serialization.Json;
-using System.Xml;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Web;
 using System.Xml.Linq;
 using System.Xml.XPath;
-using System.Net;
+using OpenTween.Connection;
 
 namespace OpenTween.Thumbnail.Services
 {
-    class Tinami : SimpleThumbnailService
+    class Tinami : IThumbnailService
     {
-        public Tinami(string pattern, string replacement = "${0}")
-            : base(pattern, replacement)
+        public static readonly Regex UrlPatternRegex =
+            new Regex(@"^https?://www\.tinami\.com/view/(?<ContentId>\d+)$");
+
+        protected HttpClient http
+        {
+            get { return this.localHttpClient ?? Networking.Http; }
+        }
+        private readonly HttpClient localHttpClient;
+
+        public Tinami()
+            : this(null)
         {
         }
 
-        public override ThumbnailInfo GetThumbnailInfo(string url, PostClass post)
+        public Tinami(HttpClient http)
         {
-            var apiUrl = base.ReplaceUrl(url);
-            if (apiUrl == null) return null;
+            this.localHttpClient = http;
+        }
 
-            var xdoc = this.FetchContentInfoApi(apiUrl);
+        public override async Task<ThumbnailInfo> GetThumbnailInfoAsync(string url, PostClass post, CancellationToken token)
+        {
+            var match = Tinami.UrlPatternRegex.Match(url);
+            if (!match.Success)
+                return null;
 
-            if (xdoc.XPathSelectElement("/rsp").Attribute("stat").Value == "ok")
+            var contentId = match.Groups["ContentId"].Value;
+
+            try
             {
-                var thumbUrlElm = xdoc.XPathSelectElement("/rsp/content/thumbnails/thumbnail_150x150");
-                if (thumbUrlElm != null)
-                {
-                    var descElm = xdoc.XPathSelectElement("/rsp/content/description");
+                var xdoc = await this.FetchContentInfoApiAsync(contentId, token)
+                    .ConfigureAwait(false);
 
-                    return new ThumbnailInfo()
-                    {
-                        ImageUrl = url,
-                        ThumbnailUrl = thumbUrlElm.Attribute("url").Value,
-                        TooltipText = descElm == null ? null : descElm.Value,
-                    };
-                }
+                if (xdoc.XPathSelectElement("/rsp").Attribute("stat").Value != "ok")
+                    return null;
+
+                var thumbUrlElm = xdoc.XPathSelectElement("/rsp/content/thumbnails/thumbnail_150x150");
+                if (thumbUrlElm == null)
+                    return null;
+
+                var descElm = xdoc.XPathSelectElement("/rsp/content/description");
+
+                return new ThumbnailInfo
+                {
+                    ImageUrl = url,
+                    ThumbnailUrl = thumbUrlElm.Attribute("url").Value,
+                    TooltipText = descElm == null ? null : descElm.Value,
+                };
             }
+            catch (HttpRequestException) { }
 
             return null;
         }
 
-        protected virtual XDocument FetchContentInfoApi(string url)
+        protected virtual async Task<XDocument> FetchContentInfoApiAsync(string contentId, CancellationToken token)
         {
-            return XDocument.Load(url);
+            var query = new Dictionary<string, string>
+            {
+                {"api_key", ApplicationSettings.TINAMIApiKey},
+                {"cont_id", contentId},
+            };
+
+            var apiUrl = new Uri("http://api.tinami.com/content/info?" + MyCommon.BuildQueryString(query));
+
+            using (var response = await this.http.GetAsync(apiUrl, token).ConfigureAwait(false))
+            {
+                response.EnsureSuccessStatusCode();
+
+                var xmlStr = await response.Content.ReadAsStringAsync()
+                    .ConfigureAwait(false);
+
+                return XDocument.Parse(xmlStr);
+            }
         }
     }
 }

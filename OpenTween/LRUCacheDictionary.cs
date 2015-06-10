@@ -136,16 +136,17 @@ namespace OpenTween
 
         public bool Contains(KeyValuePair<TKey, TValue> item)
         {
-            if (!this.innerDict.ContainsKey(item.Key)) return false;
+            LinkedListNode<KeyValuePair<TKey, TValue>> node;
+            if (!this.innerDict.TryGetValue(item.Key, out node)) return false;
 
-            return this.innerDict[item.Key].Value.Value.Equals(item.Value);
+            return node.Value.Value.Equals(item.Value);
         }
 
         public bool Remove(TKey key)
         {
-            if (!this.innerDict.ContainsKey(key)) return false;
+            LinkedListNode<KeyValuePair<TKey, TValue>> node;
+            if (!this.innerDict.TryGetValue(key, out node)) return false;
 
-            var node = this.innerDict[key];
             this.innerList.Remove(node);
 
             return this.innerDict.Remove(key);
@@ -153,9 +154,9 @@ namespace OpenTween
 
         public bool Remove(KeyValuePair<TKey, TValue> item)
         {
-            if (!this.innerDict.ContainsKey(item.Key)) return false;
+            LinkedListNode<KeyValuePair<TKey, TValue>> node;
+            if (!this.innerDict.TryGetValue(item.Key, out node)) return false;
 
-            var node = this.innerDict[item.Key];
             if (!node.Value.Value.Equals(item.Value)) return false;
 
             this.innerList.Remove(node);
@@ -239,13 +240,13 @@ namespace OpenTween
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         {
             if (array == null)
-                throw new ArgumentNullException();
+                throw new ArgumentNullException("array");
             if (arrayIndex < 0)
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException("arrayIndex");
             if (arrayIndex >= array.Length)
-                throw new ArgumentException("arrayIndex is equal to or greater than array.Length.");
+                throw new ArgumentException("arrayIndex is equal to or greater than array.Length.", "arrayIndex");
             if (array.Length - arrayIndex < this.Count)
-                throw new ArgumentException("The destination array is too small.");
+                throw new ArgumentException("The destination array is too small.", "array");
 
             foreach (var pair in this)
                 array[arrayIndex++] = pair;

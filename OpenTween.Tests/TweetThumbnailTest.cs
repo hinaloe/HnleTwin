@@ -23,13 +23,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using NSubstitute;
+using Moq;
 using OpenTween.Thumbnail;
 using OpenTween.Thumbnail.Services;
 using Xunit;
@@ -52,25 +53,28 @@ namespace OpenTween
                 this.replaceTooltip = replaceTooltip;
             }
 
-            public override ThumbnailInfo GetThumbnailInfo(string url, PostClass post)
+            public override Task<ThumbnailInfo> GetThumbnailInfoAsync(string url, PostClass post, CancellationToken token)
             {
-                var match = this.regex.Match(url);
-
-                if (!match.Success) return null;
-
-                return new MockThumbnailInfo
+                return Task.Run<ThumbnailInfo>(() =>
                 {
-                    ImageUrl = url,
-                    ThumbnailUrl = match.Result(this.replaceUrl),
-                    TooltipText = this.replaceTooltip != null ? match.Result(this.replaceTooltip) : null,
-                };
+                    var match = this.regex.Match(url);
+
+                    if (!match.Success) return null;
+
+                    return new MockThumbnailInfo
+                    {
+                        ImageUrl = url,
+                        ThumbnailUrl = match.Result(this.replaceUrl),
+                        TooltipText = this.replaceTooltip != null ? match.Result(this.replaceTooltip) : null,
+                    };
+                });
             }
 
             class MockThumbnailInfo : ThumbnailInfo
             {
-                public override Task<MemoryImage> LoadThumbnailImageAsync(CancellationToken token)
+                public override Task<MemoryImage> LoadThumbnailImageAsync(HttpClient http, CancellationToken cancellationToken)
                 {
-                    return Task.Factory.StartNew(() => MemoryImage.CopyFromBytes(File.ReadAllBytes("Resources/" + this.ThumbnailUrl)), token);
+                    return Task.FromResult(TestUtils.CreateDummyImage());
                 }
             }
         }
@@ -86,18 +90,17 @@ namespace OpenTween
             ThumbnailGenerator.Services.Clear();
             ThumbnailGenerator.Services.AddRange(new[]
             {
-                new TestThumbnailService(@"^https?://foo.example.com/(.+)$", @"dot.gif", null),
-                new TestThumbnailService(@"^https?://bar.example.com/(.+)$", @"dot.gif", @"${1}"),
+                new TestThumbnailService(@"^https?://foo.example.com/(.+)$", @"http://img.example.com/${1}.png", null),
+                new TestThumbnailService(@"^https?://bar.example.com/(.+)$", @"http://img.example.com/${1}.png", @"${1}"),
             });
         }
 
         public void MyCommonSetup()
         {
-            var mockAssembly = Substitute.For<_Assembly>();
-            mockAssembly.GetName().Returns(new AssemblyName("OpenTween"));
-            MyCommon.EntryAssembly = mockAssembly;
+            var mockAssembly = new Mock<_Assembly>();
+            mockAssembly.Setup(m => m.GetName()).Returns(new AssemblyName("OpenTween"));
 
-            MyCommon.fileVersion = "1.0.0.0";
+            MyCommon.EntryAssembly = mockAssembly.Object;
         }
 
         [Fact]
@@ -118,19 +121,27 @@ namespace OpenTween
             }
         }
 
-        [Fact(Skip = "Mono環境でたまに InvaliOperationException: out of sync で異常終了する")]
-        public void CancelAsyncTest()
+        [Fact]
+        public async Task CancelAsyncTest()
         {
-            using (var thumbbox = new TweetThumbnail())
+            var post = new PostClass
             {
-                var post = new PostClass();
+                TextFromApi = "てすと http://foo.example.com/abcd",
+                Media = new List<MediaInfo>
+                {
+                    new MediaInfo("http://foo.example.com/abcd"),
+                },
+            };
 
+            using (var thumbbox = new TweetThumbnail())
+            using (var tokenSource = new CancellationTokenSource())
+            {
                 SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
-                var task = thumbbox.ShowThumbnailAsync(post);
+                var task = thumbbox.ShowThumbnailAsync(post, tokenSource.Token);
 
-                thumbbox.CancelAsync();
+                tokenSource.Cancel();
 
-                Assert.Throws<AggregateException>(() => task.Wait());
+                await TestUtils.ThrowsAnyAsync<OperationCanceledException>(async () => await task);
                 Assert.True(task.IsCanceled);
             }
         }
@@ -167,21 +178,21 @@ namespace OpenTween
         }
 
         [Fact]
-        public void ShowThumbnailAsyncTest()
+        public async Task ShowThumbnailAsyncTest()
         {
             var post = new PostClass
             {
                 TextFromApi = "てすと http://foo.example.com/abcd",
-                Media = new Dictionary<string, string>
+                Media = new List<MediaInfo>
                 {
-                    {"http://foo.example.com/abcd", "http://foo.example.com/abcd"},
+                    new MediaInfo("http://foo.example.com/abcd"),
                 },
             };
 
             using (var thumbbox = new TweetThumbnail())
             {
                 SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
-                thumbbox.ShowThumbnailAsync(post).Wait();
+                await thumbbox.ShowThumbnailAsync(post);
 
                 Assert.Equal(0, thumbbox.scrollBar.Maximum);
                 Assert.False(thumbbox.scrollBar.Enabled);
@@ -193,29 +204,29 @@ namespace OpenTween
                 var thumbinfo = (ThumbnailInfo)thumbbox.pictureBox[0].Tag;
 
                 Assert.Equal("http://foo.example.com/abcd", thumbinfo.ImageUrl);
-                Assert.Equal("dot.gif", thumbinfo.ThumbnailUrl);
+                Assert.Equal("http://img.example.com/abcd.png", thumbinfo.ThumbnailUrl);
 
                 Assert.Equal("", thumbbox.toolTip.GetToolTip(thumbbox.pictureBox[0]));
             }
         }
 
         [Fact]
-        public void ShowThumbnailAsyncTest2()
+        public async Task ShowThumbnailAsyncTest2()
         {
             var post = new PostClass
             {
                 TextFromApi = "てすと http://foo.example.com/abcd http://bar.example.com/efgh",
-                Media = new Dictionary<string, string>
+                Media = new List<MediaInfo>
                 {
-                    {"http://foo.example.com/abcd", "http://foo.example.com/abcd"},
-                    {"http://bar.example.com/efgh", "http://bar.example.com/efgh"},
+                    new MediaInfo("http://foo.example.com/abcd"),
+                    new MediaInfo("http://bar.example.com/efgh"),
                 },
             };
 
             using (var thumbbox = new TweetThumbnail())
             {
                 SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
-                thumbbox.ShowThumbnailAsync(post).Wait();
+                await thumbbox.ShowThumbnailAsync(post);
 
                 Assert.Equal(1, thumbbox.scrollBar.Maximum);
                 Assert.True(thumbbox.scrollBar.Enabled);
@@ -228,13 +239,13 @@ namespace OpenTween
                 var thumbinfo = (ThumbnailInfo)thumbbox.pictureBox[0].Tag;
 
                 Assert.Equal("http://foo.example.com/abcd", thumbinfo.ImageUrl);
-                Assert.Equal("dot.gif", thumbinfo.ThumbnailUrl);
+                Assert.Equal("http://img.example.com/abcd.png", thumbinfo.ThumbnailUrl);
 
                 Assert.IsAssignableFrom<ThumbnailInfo>(thumbbox.pictureBox[1].Tag);
                 thumbinfo = (ThumbnailInfo)thumbbox.pictureBox[1].Tag;
 
                 Assert.Equal("http://bar.example.com/efgh", thumbinfo.ImageUrl);
-                Assert.Equal("dot.gif", thumbinfo.ThumbnailUrl);
+                Assert.Equal("http://img.example.com/efgh.png", thumbinfo.ThumbnailUrl);
 
                 Assert.Equal("", thumbbox.toolTip.GetToolTip(thumbbox.pictureBox[0]));
                 Assert.Equal("efgh", thumbbox.toolTip.GetToolTip(thumbbox.pictureBox[1]));
@@ -242,7 +253,7 @@ namespace OpenTween
         }
 
         [Fact]
-        public void ThumbnailLoadingEventTest()
+        public async Task ThumbnailLoadingEventTest()
         {
             using (var thumbbox = new TweetThumbnail())
             {
@@ -255,69 +266,71 @@ namespace OpenTween
                 var post = new PostClass
                 {
                     TextFromApi = "てすと",
-                    Media = new Dictionary<string, string>
+                    Media = new List<MediaInfo>
                     {
                     },
                 };
                 eventCalled = false;
-                thumbbox.ShowThumbnailAsync(post).Wait();
+                await thumbbox.ShowThumbnailAsync(post);
 
                 Assert.False(eventCalled);
+
+                SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
 
                 var post2 = new PostClass
                 {
                     TextFromApi = "てすと http://foo.example.com/abcd",
-                    Media = new Dictionary<string, string>
+                    Media = new List<MediaInfo>
                     {
-                        {"http://foo.example.com/abcd", "http://foo.example.com/abcd"},
+                        new MediaInfo("http://foo.example.com/abcd"),
                     },
                 };
                 eventCalled = false;
-                thumbbox.ShowThumbnailAsync(post2).Wait();
+                await thumbbox.ShowThumbnailAsync(post2);
 
                 Assert.True(eventCalled);
             }
         }
 
         [Fact]
-        public void ScrollTest()
+        public async Task ScrollTest()
         {
             var post = new PostClass
             {
                 TextFromApi = "てすと http://foo.example.com/abcd http://foo.example.com/efgh",
-                Media = new Dictionary<string, string>
+                Media = new List<MediaInfo>
                 {
-                    {"http://foo.example.com/abcd", "http://foo.example.com/abcd"},
-                    {"http://foo.example.com/efgh", "http://foo.example.com/efgh"},
+                    new MediaInfo("http://foo.example.com/abcd"),
+                    new MediaInfo("http://foo.example.com/efgh"),
                 },
             };
 
             using (var thumbbox = new TweetThumbnail())
             {
                 SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
-                thumbbox.ShowThumbnailAsync(post).Wait();
+                await thumbbox.ShowThumbnailAsync(post);
 
                 Assert.Equal(0, thumbbox.scrollBar.Minimum);
                 Assert.Equal(1, thumbbox.scrollBar.Maximum);
 
                 thumbbox.scrollBar.Value = 0;
 
-                thumbbox.ScrollUp();
-                Assert.Equal(1, thumbbox.scrollBar.Value);
-                Assert.False(thumbbox.pictureBox[0].Visible);
-                Assert.True(thumbbox.pictureBox[1].Visible);
-
-                thumbbox.ScrollUp();
+                thumbbox.ScrollDown();
                 Assert.Equal(1, thumbbox.scrollBar.Value);
                 Assert.False(thumbbox.pictureBox[0].Visible);
                 Assert.True(thumbbox.pictureBox[1].Visible);
 
                 thumbbox.ScrollDown();
+                Assert.Equal(1, thumbbox.scrollBar.Value);
+                Assert.False(thumbbox.pictureBox[0].Visible);
+                Assert.True(thumbbox.pictureBox[1].Visible);
+
+                thumbbox.ScrollUp();
                 Assert.Equal(0, thumbbox.scrollBar.Value);
                 Assert.True(thumbbox.pictureBox[0].Visible);
                 Assert.False(thumbbox.pictureBox[1].Visible);
 
-                thumbbox.ScrollDown();
+                thumbbox.ScrollUp();
                 Assert.Equal(0, thumbbox.scrollBar.Value);
                 Assert.True(thumbbox.pictureBox[0].Visible);
                 Assert.False(thumbbox.pictureBox[1].Visible);

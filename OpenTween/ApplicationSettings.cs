@@ -163,5 +163,23 @@ namespace OpenTween
         /// Imgur Client Secret
         /// </summary>
         public readonly static string ImgurClientSecret = "af5d668a9aa83b34a8f0f735e12073edafbc9a5d";
+
+        //=====================================================================
+        // Mobypicture
+        // http://www.mobypicture.com/apps/my から取得できます
+
+        /// <summary>
+        /// Mobypicture Developer Key
+        /// </summary>
+        public readonly static string MobypictureKey = "quPWTX0UrPHxqdH7";
+
+        //=====================================================================
+        // Tumblr
+        // https://www.tumblr.com/oauth/apps から取得できます
+
+        /// <summary>
+        /// Tumblr OAuth Consumer Key
+        /// </summary>
+        public readonly static string TumblrConsumerKey = "Nsk62V6wMIqVNbiGyN0g3aDGBlgU7Fcb9GJ8Se0z2MUDHAY15l";
     }
 }

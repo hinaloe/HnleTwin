@@ -20,7 +20,7 @@
 // for more details. 
 // 
 // You should have received a copy of the GNU General public License along
-// with this program. if (not, see <http://www.gnu.org/licenses/>, or write to
+// with this program. If not, see <http://www.gnu.org/licenses/>, or write to
 // the Free Software Foundation, Inc., 51 Franklin Street - Fifth Floor,
 // Boston, MA 02110-1301, USA.
 
@@ -28,6 +28,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -53,7 +54,13 @@ namespace OpenTween
             InitializeComponent();
 
             // メイリオフォント指定時にタブの最小幅が広くなる問題の対策
-            this.TabEventType.HandleCreated += (s, e) => Win32Api.SetMinTabWidth((TabControl)s, 40);
+            this.TabEventType.HandleCreated += (s, e) => NativeMethods.SetMinTabWidth((TabControl)s, 40);
+        }
+
+        protected override void ScaleControl(SizeF factor, BoundsSpecified specified)
+        {
+            base.ScaleControl(factor, specified);
+            ScaleChildControl(this.EventList, factor);
         }
 
         private void OK_Button_Click(object sender, EventArgs e)
@@ -86,14 +93,14 @@ namespace OpenTween
             _curTab = TabEventType.SelectedTab;
             CreateFilterdEventSource();
             EventList.EndUpdate();
-            this.TopMost = AppendSettingDialog.Instance.AlwaysTop;
+            this.TopMost = SettingCommon.Instance.AlwaysTop;
         }
 
-        private void EventList_DoubleClick(object sender, EventArgs e)
+        private async void EventList_DoubleClick(object sender, EventArgs e)
         {
             if (EventList.SelectedIndices.Count != 0 && _filterdEventSource[EventList.SelectedIndices[0]] != null)
             {
-                ((TweenMain)this.Owner).OpenUriAsync("https://twitter.com/" + _filterdEventSource[EventList.SelectedIndices[0]].Username);
+                await ((TweenMain)this.Owner).OpenUriInBrowserAsync("https://twitter.com/" + _filterdEventSource[EventList.SelectedIndices[0]].Username);
             }
         }
 
@@ -260,7 +267,7 @@ namespace OpenTween
                     }
                 }
             }
-            this.TopMost = AppendSettingDialog.Instance.AlwaysTop;
+            this.TopMost = SettingCommon.Instance.AlwaysTop;
         }
 
         private void SaveEventLog(List<Twitter.FormattedEvent> source, StreamWriter sw)
@@ -276,6 +283,7 @@ namespace OpenTween
             }
         }
 
+        [SuppressMessage("Microsoft.Reliability", "CA2000:DisposeObjectsBeforeLosingScope")]
         private static IEnumerable<TabPage> CreateTabsFromUserStreamsEvent()
         {
             return Enum.GetNames(typeof(MyCommon.EVENTTYPE))

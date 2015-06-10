@@ -23,23 +23,35 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using OpenTween.Connection;
 
 namespace OpenTween.Thumbnail.Services
 {
     class Pixiv : MetaThumbnailService
     {
-        public Pixiv(string pattern, string replacement = "${0}")
-            : base(pattern, replacement)
+        public static readonly string UrlPattern =
+            @"^https?://www\.pixiv\.net/(member_illust|index)\.php\?(?=.*mode=(medium|big))(?=.*illust_id=(?<illustId>[0-9]+)).*$";
+
+        public Pixiv()
+            : base(Pixiv.UrlPattern)
         {
         }
 
-        public override ThumbnailInfo GetThumbnailInfo(string url, PostClass post)
+        public Pixiv(HttpClient http)
+            : base(http, Pixiv.UrlPattern)
         {
-            var thumb = base.GetThumbnailInfo(url, post);
+        }
+
+        public override async Task<ThumbnailInfo> GetThumbnailInfoAsync(string url, PostClass post, CancellationToken token)
+        {
+            var thumb = await base.GetThumbnailInfoAsync(url, post, token)
+                .ConfigureAwait(false);
+
             if (thumb == null) return null;
 
             return new Pixiv.Thumbnail
@@ -53,19 +65,23 @@ namespace OpenTween.Thumbnail.Services
 
         public class Thumbnail : ThumbnailInfo
         {
-            public override Task<MemoryImage> LoadThumbnailImageAsync(CancellationToken token)
+            public async override Task<MemoryImage> LoadThumbnailImageAsync(HttpClient http, CancellationToken cancellationToken)
             {
-                var client = new OTWebClient();
+                var request = new HttpRequestMessage(HttpMethod.Get, this.ThumbnailUrl);
 
-                client.UserAgent = MyCommon.GetUserAgentString(fakeMSIE: true);
-                client.Headers[HttpRequestHeader.Referer] = this.ImageUrl;
+                request.Headers.Add("User-Agent", Networking.GetUserAgentString(fakeMSIE: true));
+                request.Headers.Referrer = new Uri(this.ImageUrl);
 
-                var task = client.DownloadDataAsync(new Uri(this.ThumbnailUrl), token)
-                    .ContinueWith(t => MemoryImage.CopyFromBytes(t.Result), TaskScheduler.Default);
+                using (var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false))
+                {
+                    response.EnsureSuccessStatusCode();
 
-                task.ContinueWith(_ => client.Dispose(), TaskScheduler.Default);
-
-                return task;
+                    using (var imageStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+                    {
+                        return await MemoryImage.CopyFromStreamAsync(imageStream)
+                            .ConfigureAwait(false);
+                    }
+                }
             }
         }
     }

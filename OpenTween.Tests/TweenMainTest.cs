@@ -25,6 +25,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using OpenTween.Api;
 using Xunit;
 using Xunit.Extensions;
 
@@ -136,21 +137,21 @@ namespace OpenTween
             // TweetFormatterでHTMLに整形 → CreateRetweetUnofficialで復元 までの動作が正しく行えているか
 
             var text = "#てすと @TwitterAPI \n http://t.co/KYi7vMZzRt";
-            var entities = new TwitterDataModel.Entity[]
+            var entities = new TwitterEntity[]
             {
-                new TwitterDataModel.Hashtags
+                new TwitterEntityHashtag
                 {
                     Indices = new[] { 0, 4 },
                     Text = "てすと",
                 },
-                new TwitterDataModel.UserMentions
+                new TwitterEntityMention
                 {
                     Indices = new[] { 5, 16 },
                     Id = 6253282L,
                     Name = "Twitter API",
                     ScreenName = "twitterapi",
                 },
-                new TwitterDataModel.Urls
+                new TwitterEntityUrl
                 {
                     Indices = new[] { 19, 41 },
                     DisplayUrl = "twitter.com",
@@ -163,6 +164,49 @@ namespace OpenTween
 
             var expected = "#てすと @TwitterAPI " + Environment.NewLine + " http://twitter.com/";
             Assert.Equal(expected, TweenMain.CreateRetweetUnofficial(html, true));
+        }
+
+        [Fact]
+        public void FormatQuoteTweetHtml_PostClassTest()
+        {
+            var post = new PostClass
+            {
+                StatusId = 12345L,
+                Nickname = "upsilon",
+                ScreenName = "kim_upsilon",
+                Text = "<a href=\"https://twitter.com/twitterapi\">@twitterapi</a> hogehoge",
+                CreatedAt = new DateTime(2015, 3, 30, 3, 30, 0),
+            };
+
+            // PostClass.Text はリンクを除去するのみでエスケープは行わない
+            // (TweetFormatter によって既にエスケープされた文字列が格納されているため)
+
+            var expected = "<a class=\"quote-tweet-link\" href=\"https://twitter.com/kim_upsilon/status/12345\">" +
+                "<blockquote class=\"quote-tweet\">" +
+                "<p>@twitterapi hogehoge</p> &mdash; upsilon (@kim_upsilon) " + DateTime.Parse("2015/03/30 3:30:00") +
+                "</blockquote></a>";
+            Assert.Equal(expected, TweenMain.FormatQuoteTweetHtml(post));
+        }
+
+        [Fact]
+        public void FormatQuoteTweetHtml_HtmlTest()
+        {
+            var statusId = 12345L; // リンク先のステータスID
+            var html = "<marquee>hogehoge</marquee>"; // HTMLをそのまま出力する (エスケープしない)
+
+            var expected = "<a class=\"quote-tweet-link\" href=\"https://twitter.com/twitter/status/12345\">" +
+                "<blockquote class=\"quote-tweet\"><marquee>hogehoge</marquee></blockquote>" +
+                "</a>";
+            Assert.Equal(expected, TweenMain.FormatQuoteTweetHtml("twitter", statusId, html));
+        }
+
+        [Fact]
+        public void StripLinkTagHtml_Test()
+        {
+            var html = "<a href=\"https://twitter.com/twitterapi\">@twitterapi</a>";
+
+            var expected = "@twitterapi";
+            Assert.Equal(expected, TweenMain.StripLinkTagHtml(html));
         }
     }
 }

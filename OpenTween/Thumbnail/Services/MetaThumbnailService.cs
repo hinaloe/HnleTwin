@@ -22,53 +22,66 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Net;
+using System.Net.Http;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using OpenTween.Connection;
 
 namespace OpenTween.Thumbnail.Services
 {
     /// <summary>
     /// og:image や twitter:image をスクレイピングしてサムネイルURLを抽出する
     /// </summary>
-    class MetaThumbnailService : SimpleThumbnailService
+    class MetaThumbnailService : IThumbnailService
     {
         protected static Regex metaPattern = new Regex("<meta (name|property)=[\"'](?<name>.+?)[\"'] (content|value)=[\"'](?<content>.+?)[\"']");
-        protected static string[] propertyNames = { "twitter:image", "og:image" };
+        protected static string[] propertyNames = { "og:image", "twitter:image", "twitter:image:src" };
 
-        public MetaThumbnailService(string url)
-            : this(url, "${0}")
+        protected HttpClient http
+        {
+            get { return this.localHttpClient ?? Networking.Http; }
+        }
+        private readonly HttpClient localHttpClient;
+
+        protected readonly Regex regex;
+
+        public MetaThumbnailService(string urlPattern)
+            : this(null, urlPattern)
         {
         }
 
-        public MetaThumbnailService(string pattern, string replacement)
-            : base(pattern, replacement)
+        public MetaThumbnailService(HttpClient http, string urlPattern)
         {
+            this.localHttpClient = http;
+            this.regex = new Regex(urlPattern);
         }
 
-        public override ThumbnailInfo GetThumbnailInfo(string url, PostClass post)
+        public override async Task<ThumbnailInfo> GetThumbnailInfoAsync(string url, PostClass post, CancellationToken token)
         {
-            var pageUrl = this.ReplaceUrl(url);
-            if (pageUrl == null) return null;
+            if (!this.regex.IsMatch(url))
+                return null;
 
             try
             {
-                var content = this.FetchImageUrl(pageUrl);
+                var content = await this.FetchImageUrlAsync(url, token)
+                    .ConfigureAwait(false);
 
                 var thumbnailUrl = this.GetThumbnailUrl(content);
                 if (string.IsNullOrEmpty(thumbnailUrl)) return null;
 
-                return new ThumbnailInfo()
+                return new ThumbnailInfo
                 {
                     ImageUrl = url,
                     ThumbnailUrl = thumbnailUrl,
                     TooltipText = null,
                 };
             }
-            catch (WebException)
-            {
-                return null;
-            }
+            catch (HttpRequestException) { }
+
+            return null;
         }
 
         protected virtual string GetThumbnailUrl(string html)
@@ -87,11 +100,14 @@ namespace OpenTween.Thumbnail.Services
             return null;
         }
 
-        protected virtual string FetchImageUrl(string url)
+        protected virtual async Task<string> FetchImageUrlAsync(string url, CancellationToken token)
         {
-            using (var client = new OTWebClient())
+            using (var response = await this.http.GetAsync(url, token).ConfigureAwait(false))
             {
-                return client.DownloadString(url);
+                response.EnsureSuccessStatusCode();
+
+                return await response.Content.ReadAsStringAsync()
+                    .ConfigureAwait(false);
             }
         }
     }

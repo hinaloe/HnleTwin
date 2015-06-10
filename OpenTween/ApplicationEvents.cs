@@ -36,6 +36,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Globalization;
 using System.Reflection;
+using Microsoft.Win32;
 
 namespace OpenTween
 {
@@ -52,6 +53,13 @@ namespace OpenTween
         [STAThread]
         static int Main(string[] args)
         {
+            if (!CheckRuntimeVersion())
+            {
+                var message = string.Format(Properties.Resources.CheckRuntimeVersion_Error, ".NET Framework 4.5.1");
+                MessageBox.Show(message, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return 1;
+            }
+
             StartupOptions = ParseArguments(args);
 
             if (!SetConfigDirectoryPath())
@@ -68,7 +76,7 @@ namespace OpenTween
                     var text = string.Format(MyCommon.ReplaceAppName(Properties.Resources.StartupText1), MyCommon.GetAssemblyName());
                     MessageBox.Show(text, MyCommon.ReplaceAppName(Properties.Resources.StartupText2), MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                    ShowPreviousWindow();
+                    TryActivatePreviousWindow();
                     return 1;
                 }
 
@@ -91,6 +99,26 @@ namespace OpenTween
         }
 
         /// <summary>
+        /// 動作中の .NET Framework のバージョンが適切かチェックします
+        /// </summary>
+        private static bool CheckRuntimeVersion()
+        {
+            // Mono 上で動作している場合はバージョンチェックを無視します
+            if (Type.GetType("Mono.Runtime", false) != null)
+                return true;
+
+            // .NET Framework 4.5.1 以降で動作しているかチェックする
+            // 参照: http://msdn.microsoft.com/en-us/library/hh925568%28v=vs.110%29.aspx
+
+            using (var lmKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32))
+            using (var ndpKey = lmKey.OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\"))
+            {
+                var releaseKey = (int)ndpKey.GetValue("Release");
+                return releaseKey >= 378675;
+            }
+        }
+
+        /// <summary>
         /// “/key:value”形式の起動オプションを解釈し IDictionary に変換する
         /// </summary>
         /// <remarks>
@@ -107,24 +135,38 @@ namespace OpenTween
                 .ToDictionary(x => x.Key, x => x.Last().Groups[2].Value);
         }
 
-        private static void ShowPreviousWindow()
+        private static void TryActivatePreviousWindow()
         {
             // 実行中の同じアプリケーションのウィンドウ・ハンドルの取得
-            var prevProcess = Win32Api.GetPreviousProcess();
-            if (prevProcess == null)
+            var prevProcess = GetPreviousProcess();
+            if (prevProcess == null || prevProcess.MainWindowHandle == IntPtr.Zero)
+            {
                 return;
-
-            if (prevProcess.MainWindowHandle != IntPtr.Zero)
-            {
-                // 起動中のアプリケーションを最前面に表示
-                Win32Api.WakeupWindow(prevProcess.MainWindowHandle);
             }
-            else
+
+            var form = Control.FromHandle(prevProcess.MainWindowHandle) as Form;
+            if (form != null)
             {
-                //プロセス特定は出来たが、ウィンドウハンドルが取得できなかった（アイコン化されている）
-                //タスクトレイアイコンのクリックをエミュレート
-                //注：アイコン特定はTooltipの文字列で行うため、多重起動時は先に見つけた物がアクティブになる
-                Win32Api.ClickTasktrayIcon(Application.ProductName);
+                if (form.WindowState == FormWindowState.Minimized)
+                {
+                    NativeMethods.RestoreWindow(form);
+                }
+                form.Activate();
+            }
+        }
+
+        private static Process GetPreviousProcess()
+        {
+            var currentProcess = Process.GetCurrentProcess();
+            try
+            {
+                return Process.GetProcessesByName(currentProcess.ProcessName)
+                    .Where(p => p.Id != currentProcess.Id)
+                    .FirstOrDefault(p => p.MainModule.FileName.Equals(currentProcess.MainModule.FileName, StringComparison.OrdinalIgnoreCase));
+            }
+            catch
+            {
+                return null;
             }
         }
 

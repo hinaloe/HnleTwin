@@ -20,7 +20,7 @@
 // for more details. 
 // 
 // You should have received a copy of the GNU General public License along
-// with this program. if (not, see <http://www.gnu.org/licenses/>, or write to
+// with this program. If not, see <http://www.gnu.org/licenses/>, or write to
 // the Free Software Foundation, Inc., 51 Franklin Street - Fifth Floor,
 // Boston, MA 02110-1301, USA.
 
@@ -56,7 +56,7 @@ namespace OpenTween
             //パラメタをソート済みディクショナリに詰替（OAuthの仕様）
             SortedDictionary<string, string> sorted = new SortedDictionary<string, string>(parameter);
             //URLエンコード済みのクエリ形式文字列に変換
-            string paramString = CreateQueryString(sorted);
+            string paramString = MyCommon.BuildQueryString(sorted);
             //アクセス先URLの整形
             string url = string.Format("{0}://{1}{2}", uri.Scheme, uri.Host, uri.AbsolutePath);
             //本来のアクセス先URLに再設定（api.twitter.com固定）

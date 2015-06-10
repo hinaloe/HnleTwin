@@ -20,7 +20,7 @@
 // for more details. 
 // 
 // You should have received a copy of the GNU General public License along
-// with this program. if (not, see <http://www.gnu.org/licenses/>, or write to
+// with this program. If not, see <http://www.gnu.org/licenses/>, or write to
 // the Free Software Foundation, Inc., 51 Franklin Street - Fifth Floor,
 // Boston, MA 02110-1301, USA.
 
@@ -32,22 +32,23 @@ using System.Text;
 using System.Drawing;
 using System.IO;
 using System.Drawing.Drawing2D;
+using OpenTween.Connection;
 
 
 namespace OpenTween
 {
     public class HttpVarious : HttpConnection
     {
-        public string GetRedirectTo(string url)
+        public string GetRedirectTo(string url, int timeout = 5000)
         {
             try
             {
                 HttpWebRequest req = CreateRequest(HeadMethod, new Uri(url), null);
-                req.Timeout = 5000;
+                req.Timeout = timeout;
                 req.AllowAutoRedirect = false;
                 string data;
                 Dictionary<string, string> head = new Dictionary<string, string>();
-                HttpStatusCode ret = GetResponse(req, out data, head);
+                GetResponse(req, out data, head);
 
                 string location;
                 return head.TryGetValue("Location", out location)
@@ -62,7 +63,7 @@ namespace OpenTween
 
         public Image GetImage(Uri url)
         {
-            return GetImage(url.ToString());
+            return GetImage(url.AbsoluteUri);
         }
 
         public Image GetImage(string url)
@@ -228,7 +229,7 @@ namespace OpenTween
             {
                 HttpWebRequest req = CreateRequest(GetMethod, new Uri(Url), null);
                 req.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip;
-                req.UserAgent = MyCommon.GetUserAgentString();
+                req.UserAgent = Networking.GetUserAgentString();
                 using (FileStream strm = new FileStream(savePath, FileMode.Create, FileAccess.Write))
                 {
                     try

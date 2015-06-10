@@ -27,6 +27,8 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Threading;
 using System.Xml.Serialization;
+using System.Net.Http;
+using OpenTween.Connection;
 
 namespace OpenTween
 {
@@ -54,18 +56,13 @@ namespace OpenTween
 
         public ImageCache()
         {
-            lock (this.lockObject)
-            {
-                this.innerDictionary = new LRUCacheDictionary<string, Task<MemoryImage>>(trimLimit: 300, autoTrimCount: 100);
+            this.innerDictionary = new LRUCacheDictionary<string, Task<MemoryImage>>(trimLimit: 300, autoTrimCount: 100);
+            this.innerDictionary.CacheRemoved += (s, e) => {
+                // まだ参照されている場合もあるのでDisposeはファイナライザ任せ
+                this.CacheRemoveCount++;
+            };
 
-                this.innerDictionary.CacheRemoved += (s, e) => {
-                    // まだ参照されている場合もあるのでDisposeはファイナライザ任せ
-
-                    this.CacheRemoveCount++;
-                };
-
-                this.cancelTokenSource = new CancellationTokenSource();
-            }
+            this.cancelTokenSource = new CancellationTokenSource();
         }
 
         /// <summary>
@@ -79,7 +76,6 @@ namespace OpenTween
         /// <summary>
         /// 破棄されたキャッシュの件数
         /// </summary>
-        [XmlIgnore] // これ付けないと sgen.exe がエラーを吐く
         public int CacheRemoveCount { get; private set; }
 
         /// <summary>
@@ -92,51 +88,55 @@ namespace OpenTween
         {
             var cancelToken = this.cancelTokenSource.Token;
 
-            return Task.Factory.StartNew(() =>
+            return Task.Run(() =>
             {
                 Task<MemoryImage> cachedImageTask = null;
                 lock (this.lockObject)
                 {
                     innerDictionary.TryGetValue(address, out cachedImageTask);
 
-                    if (force && cachedImageTask != null)
-                    {
-                        this.innerDictionary.Remove(address);
-
-                        if (cachedImageTask.Status == TaskStatus.RanToCompletion)
-                            cachedImageTask.Result.Dispose();
-
-                        cachedImageTask.Dispose();
-                        cachedImageTask = null;
-                    }
-
                     if (cachedImageTask != null)
-                        return cachedImageTask;
+                    {
+                        if (force)
+                        {
+                            this.innerDictionary.Remove(address);
+                            cachedImageTask = null;
+                        }
+                        else
+                            return cachedImageTask;
+                    }
 
                     cancelToken.ThrowIfCancellationRequested();
 
-                    using (var client = new OTWebClient() { Timeout = 10000 })
-                    {
-                        var imageTask = client.DownloadDataAsync(new Uri(address), cancelToken)
-                            .ContinueWith(t => MemoryImage.CopyFromBytes(t.Result), TaskScheduler.Default);
+                    var imageTask = this.FetchImageAsync(address, cancelToken);
+                    this.innerDictionary[address] = imageTask;
 
-                        this.innerDictionary[address] = imageTask;
-
-                        return imageTask;
-                    }
+                    return imageTask;
                 }
-            }, cancelToken, TaskCreationOptions.None, TaskScheduler.Default).Unwrap();
+            }, cancelToken);
+        }
+
+        private async Task<MemoryImage> FetchImageAsync(string uri, CancellationToken cancelToken)
+        {
+            using (var response = await Networking.Http.GetAsync(uri, cancelToken).ConfigureAwait(false))
+            {
+                response.EnsureSuccessStatusCode();
+
+                using (var imageStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+                {
+                    return await MemoryImage.CopyFromStreamAsync(imageStream)
+                        .ConfigureAwait(false);
+                }
+            }
         }
 
         public MemoryImage TryGetFromCache(string address)
         {
             lock (this.lockObject)
             {
-                if (!this.innerDictionary.ContainsKey(address))
-                    return null;
-
-                var imageTask = this.innerDictionary[address];
-                if (imageTask.Status != TaskStatus.RanToCompletion)
+                Task<MemoryImage> imageTask;
+                if (!this.innerDictionary.TryGetValue(address, out imageTask) ||
+                    imageTask.Status != TaskStatus.RanToCompletion)
                     return null;
 
                 return imageTask.Result;

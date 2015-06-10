@@ -703,7 +703,8 @@
     <value>Select a media file to upload</value>
   </data>
   <data name="PostPictureConfirm1" xml:space="preserve">
-    <value>Do you want to upload the selected media file?</value>
+    <value>[Service: {0}]
+Do you want to upload the {1} selected media file(s)?</value>
   </data>
   <data name="PostPictureConfirm2" xml:space="preserve">
     <value>Confirm to upload</value>
@@ -993,11 +994,11 @@
   <data name="ChangeIconToolStripMenuItem_ClickText6" xml:space="preserve">
     <value>This file type forbidden to use as icon image.</value>
   </data>
-  <data name="Disable" xml:space="preserve">
-    <value>Disable</value>
+  <data name="Disabled" xml:space="preserve">
+    <value>Disabled</value>
   </data>
-  <data name="Enable" xml:space="preserve">
-    <value>Enable</value>
+  <data name="Enabled" xml:space="preserve">
+    <value>Enabled</value>
   </data>
   <data name="GetFriendshipInfo6" xml:space="preserve">
     <value>Faild to get relation info.</value>
@@ -1007,9 +1008,6 @@
   </data>
   <data name="IsValidLambdaExpText2" xml:space="preserve">
     <value>Lambda Expression Syntax Check</value>
-  </data>
-  <data name="KeitaiMailSourceString" xml:space="preserve">
-    <value>&lt;a href="https://twitter.com/" rel="nofollow"&gt;Keitai Mail&lt;/a&gt;</value>
   </data>
   <data name="NiconicoInfoText1" xml:space="preserve">
     <value>Title:</value>
@@ -1068,9 +1066,6 @@
   <data name="DeleteMenuText2" xml:space="preserve">
     <value>Undo Retweet (&amp;D)</value>
   </data>
-  <data name="SearchSimilarImageText" xml:space="preserve">
-    <value>Search similar images</value>
-  </data>
   <data name="ConfigDirectoryNotExist" xml:space="preserve">
     <value>The configuration directory ({0}) specified by the "/configDir" option does not exist or is not accessible.</value>
   </data>
@@ -1088,5 +1083,52 @@
   </data>
   <data name="TabNameDuplicate_Text" xml:space="preserve">
     <value>The tab "{0}" was already exists. Please remove the tab and try again.</value>
+  </data>
+  <data name="PostPictureWarn3" xml:space="preserve">
+    <value>[Service: {0}]
+"{2}" is unsupported file type. Use other service.
+
+File: {3}
+Available service: {1}</value>
+  </data>
+  <data name="PostPictureWarn4" xml:space="preserve">
+    <value>Select media</value>
+  </data>
+  <data name="PostPictureWarn5" xml:space="preserve">
+    <value>[Service: {0}]
+File is too large. Reduce the file size, or use other service.
+
+File: {2}
+Available service: {1}</value>
+  </data>
+  <data name="PostPictureWarn6" xml:space="preserve">
+    <value>none</value>
+  </data>
+  <data name="UpdateMuteUserIds_Error" xml:space="preserve">
+    <value>Failed to get MuteUserIds: {0}</value>
+  </data>
+  <data name="UpdateMuteUserIds_Finish" xml:space="preserve">
+    <value>Done to get MuteUserIds</value>
+  </data>
+  <data name="UpdateMuteUserIds_Start" xml:space="preserve">
+    <value>Getting MuteUserIds...</value>
+  </data>
+  <data name="CheckRuntimeVersion_Error" xml:space="preserve">
+    <value>This software requires {0} or later version.</value>
+  </data>
+  <data name="ChangeIconToolStripMenuItem_Confirm" xml:space="preserve">
+    <value>Do you really want to change icon?</value>
+  </data>
+  <data name="MuteTabName" xml:space="preserve">
+    <value>(Mute)</value>
+  </data>
+  <data name="LoadingText" xml:space="preserve">
+    <value>Loading...</value>
+  </data>
+  <data name="DisableButtonCaption" xml:space="preserve">
+    <value>Disable</value>
+  </data>
+  <data name="EnableButtonCaption" xml:space="preserve">
+    <value>Enable</value>
   </data>
 </root>

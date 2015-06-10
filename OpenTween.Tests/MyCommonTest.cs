@@ -28,7 +28,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Windows.Forms;
-using NSubstitute;
+using Moq;
 using OpenTween;
 using Xunit;
 using Xunit.Extensions;
@@ -194,9 +194,9 @@ namespace OpenTween
         [Fact]
         public void GetAssemblyNameTest()
         {
-            var mockAssembly = Substitute.For<_Assembly>();
-            mockAssembly.GetName().Returns(new AssemblyName("OpenTween"));
-            MyCommon.EntryAssembly = mockAssembly;
+            var mockAssembly = new Mock<_Assembly>();
+            mockAssembly.Setup(m => m.GetName()).Returns(new AssemblyName("OpenTween"));
+            MyCommon.EntryAssembly = mockAssembly.Object;
 
             Assert.Equal("OpenTween", MyCommon.GetAssemblyName());
         }
@@ -212,12 +212,12 @@ namespace OpenTween
 
         [Theory]
         [InlineData("1.0.0.0", "1.0.0")]
-        [InlineData("1.0.0.1", "1.0.1-beta1")]
-        [InlineData("1.0.0.9", "1.0.1-beta9")]
+        [InlineData("1.0.0.1", "1.0.1-dev")]
+        [InlineData("1.0.0.12", "1.0.1-dev (Build 12)")]
         [InlineData("1.0.1.0", "1.0.1")]
-        [InlineData("1.0.9.1", "1.1.0-beta1")]
+        [InlineData("1.0.9.1", "1.1.0-dev")]
         [InlineData("1.1.0.0", "1.1.0")]
-        [InlineData("1.9.9.1", "2.0.0-beta1")]
+        [InlineData("1.9.9.1", "2.0.0-dev")]
         public void GetReadableVersionTest(string fileVersion, string expected)
         {
             Assert.Equal(expected, MyCommon.GetReadableVersion(fileVersion));
@@ -258,20 +258,68 @@ namespace OpenTween
         {
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
-                var mockAssembly = Substitute.For<_Assembly>();
-                mockAssembly.Location.Returns(@"C:\hogehoge\OpenTween\OpenTween.exe");
-                MyCommon.EntryAssembly = mockAssembly;
+                var mockAssembly = new Mock<_Assembly>();
+                mockAssembly.Setup(m => m.Location).Returns(@"C:\hogehoge\OpenTween\OpenTween.exe");
+                MyCommon.EntryAssembly = mockAssembly.Object;
 
                 Assert.Equal(@"C:\hogehoge\OpenTween\ErrorLogs", MyCommon.GetErrorLogPath());
             }
             else
             {
-                var mockAssembly = Substitute.For<_Assembly>();
-                mockAssembly.Location.Returns(@"/hogehoge/OpenTween/OpenTween.exe");
-                MyCommon.EntryAssembly = mockAssembly;
+                var mockAssembly = new Mock<_Assembly>();
+                mockAssembly.Setup(m => m.Location).Returns(@"/hogehoge/OpenTween/OpenTween.exe");
+                MyCommon.EntryAssembly = mockAssembly.Object;
 
                 Assert.Equal(@"/hogehoge/OpenTween/ErrorLogs", MyCommon.GetErrorLogPath());
             }
+        }
+
+        [Fact]
+        public void CountUp_Test()
+        {
+            var actual = MyCommon.CountUp(from: 1, to: 5);
+
+            Assert.Equal(new[] { 1, 2, 3, 4, 5 }, actual);
+        }
+
+        [Fact]
+        public void CountUp_FromAndToAreEqualTest()
+        {
+            var actual = MyCommon.CountUp(from: 1, to: 1);
+
+            Assert.Equal(new[] { 1 }, actual);
+        }
+
+        [Fact]
+        public void CountUp_ToIsLessThanFromTest()
+        {
+            var actual = MyCommon.CountUp(from: 1, to: 0);
+
+            Assert.Empty(actual);
+        }
+
+        [Fact]
+        public void CountDown_Test()
+        {
+            var actual = MyCommon.CountDown(from: 5, to: 1);
+
+            Assert.Equal(new[] { 5, 4, 3, 2, 1 }, actual);
+        }
+
+        [Fact]
+        public void CountDown_FromAndToAreEqualTest()
+        {
+            var actual = MyCommon.CountDown(from: 5, to: 5);
+
+            Assert.Equal(new[] { 5 }, actual);
+        }
+
+        [Fact]
+        public void CountDown_ToIsGreaterThanFromTest()
+        {
+            var actual = MyCommon.CountDown(from: 5, to: 6);
+
+            Assert.Empty(actual);
         }
     }
 }

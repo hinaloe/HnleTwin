@@ -127,6 +127,16 @@ namespace OpenTween
         }
 
         [Fact]
+        public void Disabled_Test()
+        {
+            var filter = new PostFilterRule { FilterName = "hogehoge" };
+            var post = new PostClass { ScreenName = "hogehoge" };
+
+            filter.Enabled = false;
+            Assert.Equal(MyCommon.HITRESULT.None, filter.ExecFilter(post));
+        }
+
+        [Fact]
         public void FilterName_Test()
         {
             var filter = new PostFilterRule();
@@ -1258,22 +1268,22 @@ namespace OpenTween
             filter.FilterSource = "hogehoge";
 
             // FilterSource は UseRegex の値に関わらず部分一致
-            post = new PostClass { SourceHtml = "<a href='http://example.com/hogehoge'>****</a>" };
+            post = new PostClass { Source = "****", SourceUri = new Uri("http://example.com/hogehoge") };
             Assert.Equal(MyCommon.HITRESULT.CopyAndMark, filter.ExecFilter(post));
 
-            post = new PostClass { SourceHtml = "<a href='http://example.com/foo'>****</a>" };
+            post = new PostClass { Source = "****", SourceUri = new Uri("http://example.com/foo") };
             Assert.Equal(MyCommon.HITRESULT.None, filter.ExecFilter(post));
 
             // 大小文字を区別する
             filter.CaseSensitive = true;
 
-            post = new PostClass { SourceHtml = "<a href='http://example.com/HogeHoge'>****</a>" };
+            post = new PostClass { Source = "****", SourceUri = new Uri("http://example.com/HogeHoge") };
             Assert.Equal(MyCommon.HITRESULT.None, filter.ExecFilter(post));
 
             // 大小文字を区別しない
             filter.CaseSensitive = false;
 
-            post = new PostClass { SourceHtml = "<a href='http://example.com/HogeHoge'>****</a>" };
+            post = new PostClass { Source = "****", SourceUri = new Uri("http://example.com/HogeHoge") };
             Assert.Equal(MyCommon.HITRESULT.CopyAndMark, filter.ExecFilter(post));
         }
 
@@ -1289,22 +1299,22 @@ namespace OpenTween
             filter.ExFilterSource = "hogehoge";
 
             // ExFilterSource は ExUseRegex の値に関わらず部分一致
-            post = new PostClass { SourceHtml = "<a href='http://example.com/hogehoge'>****</a>" };
+            post = new PostClass { Source = "****", SourceUri = new Uri("http://example.com/hogehoge") };
             Assert.Equal(MyCommon.HITRESULT.Exclude, filter.ExecFilter(post));
 
-            post = new PostClass { SourceHtml = "<a href='http://example.com/foo'>****</a>" };
+            post = new PostClass { Source = "****", SourceUri = new Uri("http://example.com/foo") };
             Assert.Equal(MyCommon.HITRESULT.None, filter.ExecFilter(post));
 
             // 大小文字を区別する
             filter.ExCaseSensitive = true;
 
-            post = new PostClass { SourceHtml = "<a href='http://example.com/HogeHoge'>****</a>" };
+            post = new PostClass { Source = "****", SourceUri = new Uri("http://example.com/HogeHoge") };
             Assert.Equal(MyCommon.HITRESULT.None, filter.ExecFilter(post));
 
             // 大小文字を区別しない
             filter.ExCaseSensitive = false;
 
-            post = new PostClass { SourceHtml = "<a href='http://example.com/HogeHoge'>****</a>" };
+            post = new PostClass { Source = "****", SourceUri = new Uri("http://example.com/HogeHoge") };
             Assert.Equal(MyCommon.HITRESULT.Exclude, filter.ExecFilter(post));
         }
 
@@ -1321,22 +1331,22 @@ namespace OpenTween
             filter.FilterSource = "(hoge){2}";
 
             // FilterSource は UseRegex の値に関わらず部分一致
-            post = new PostClass { SourceHtml = "<a href='http://example.com/hogehoge'>****</a>" };
+            post = new PostClass { Source = "****", SourceUri = new Uri("http://example.com/hogehoge") };
             Assert.Equal(MyCommon.HITRESULT.CopyAndMark, filter.ExecFilter(post));
 
-            post = new PostClass { SourceHtml = "<a href='http://example.com/foo'>****</a>" };
+            post = new PostClass { Source = "****", SourceUri = new Uri("http://example.com/foo") };
             Assert.Equal(MyCommon.HITRESULT.None, filter.ExecFilter(post));
 
             // 大小文字を区別する
             filter.CaseSensitive = true;
 
-            post = new PostClass { SourceHtml = "<a href='http://example.com/HogeHoge'>****</a>" };
+            post = new PostClass { Source = "****", SourceUri = new Uri("http://example.com/HogeHoge") };
             Assert.Equal(MyCommon.HITRESULT.None, filter.ExecFilter(post));
 
             // 大小文字を区別しない
             filter.CaseSensitive = false;
 
-            post = new PostClass { SourceHtml = "<a href='http://example.com/HogeHoge'>****</a>" };
+            post = new PostClass { Source = "****", SourceUri = new Uri("http://example.com/HogeHoge") };
             Assert.Equal(MyCommon.HITRESULT.CopyAndMark, filter.ExecFilter(post));
         }
 
@@ -1353,22 +1363,22 @@ namespace OpenTween
             filter.ExFilterSource = "(hoge){2}";
 
             // ExFilterSource は ExUseRegex の値に関わらず部分一致
-            post = new PostClass { SourceHtml = "<a href='http://example.com/hogehoge'>****</a>" };
+            post = new PostClass { Source = "****", SourceUri = new Uri("http://example.com/hogehoge") };
             Assert.Equal(MyCommon.HITRESULT.Exclude, filter.ExecFilter(post));
 
-            post = new PostClass { SourceHtml = "<a href='http://example.com/foo'>****</a>" };
+            post = new PostClass { Source = "****", SourceUri = new Uri("http://example.com/foo") };
             Assert.Equal(MyCommon.HITRESULT.None, filter.ExecFilter(post));
 
             // 大小文字を区別する
             filter.ExCaseSensitive = true;
 
-            post = new PostClass { SourceHtml = "<a href='http://example.com/HogeHoge'>****</a>" };
+            post = new PostClass { Source = "****", SourceUri = new Uri("http://example.com/HogeHoge") };
             Assert.Equal(MyCommon.HITRESULT.None, filter.ExecFilter(post));
 
             // 大小文字を区別しない
             filter.ExCaseSensitive = false;
 
-            post = new PostClass { SourceHtml = "<a href='http://example.com/HogeHoge'>****</a>" };
+            post = new PostClass { Source = "****", SourceUri = new Uri("http://example.com/HogeHoge") };
             Assert.Equal(MyCommon.HITRESULT.Exclude, filter.ExecFilter(post));
         }
 
@@ -1400,6 +1410,111 @@ namespace OpenTween
 
             post = new PostClass { };
             Assert.Equal(MyCommon.HITRESULT.None, filter.ExecFilter(post));
+        }
+
+        [Fact]
+        public void SetProperty_Test()
+        {
+            var filter = new PostFilterRule();
+
+            string changedPropeyty = null;
+
+            filter.PropertyChanged += (_, x) => changedPropeyty = x.PropertyName;
+            filter.FilterName = "hogehoge";
+
+            Assert.Equal("FilterName", changedPropeyty);
+            Assert.True(filter.IsDirty);
+        }
+
+        [Fact]
+        public void SetProperty_SameValueTest()
+        {
+            var filter = new PostFilterRule();
+            filter.FilterName = "hogehoge";
+            filter.Compile();
+
+            string changedPropeyty = null;
+
+            // 値に変化がないので PropertyChanged イベントは発生しない
+            filter.PropertyChanged += (_, x) => changedPropeyty = x.PropertyName;
+            filter.FilterName = "hogehoge";
+
+            Assert.Null(changedPropeyty);
+            Assert.False(filter.IsDirty);
+        }
+
+        [Fact]
+        public void Equals_Test()
+        {
+            var filter1 = new PostFilterRule
+            {
+                FilterName = "name",
+                FilterBody = new[] { "body" },
+                FilterSource = "source",
+                ExFilterName = "nameEx",
+                ExFilterBody = new[] { "bodyEx" },
+                ExFilterSource = "sourceEx",
+            };
+            var filter2 = new PostFilterRule
+            {
+                FilterName = "name",
+                FilterBody = new[] { "body" },
+                FilterSource = "source",
+                ExFilterName = "nameEx",
+                ExFilterBody = new[] { "bodyEx" },
+                ExFilterSource = "sourceEx",
+            };
+
+            Assert.True(filter1.Equals(filter2));
+            Assert.True(filter2.Equals(filter1));
+        }
+
+        [Fact]
+        public void Equals_HasNoMatchConditionsTest()
+        {
+            var filter1 = new PostFilterRule
+            {
+                // マッチ条件
+                FilterName = "",
+                CaseSensitive = true,
+
+                // 除外条件
+                ExFilterName = "nameEx",
+            };
+            var filter2 = new PostFilterRule
+            {
+                FilterName = "",
+                CaseSensitive = false,
+                ExFilterName = "nameEx",
+            };
+
+            // マッチ条件 (≠除外条件) が無いので CaseSensitive 等の差異は無視する
+            Assert.True(filter1.Equals(filter2));
+            Assert.True(filter2.Equals(filter1));
+        }
+
+        [Fact]
+        public void Equals_HasNoExcludeConditionsTest()
+        {
+            var filter1 = new PostFilterRule
+            {
+                // マッチ条件
+                FilterName = "name",
+
+                // 除外条件
+                ExFilterName = "",
+                ExCaseSensitive = true,
+            };
+            var filter2 = new PostFilterRule
+            {
+                FilterName = "name",
+                ExFilterName = "",
+                ExCaseSensitive = false,
+            };
+
+            // 除外条件が無いので ExCaseSensitive 等の差異は無視する
+            Assert.True(filter1.Equals(filter2));
+            Assert.True(filter2.Equals(filter1));
         }
     }
 }
